@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Holo Cote</title>
+<meta name="description" content="Classeur de cartes Pokémon : scan, centrage, collection, ventes et cotes Cardmarket.">
+<meta name="theme-color" content="#f7f4fc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131022" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --fond:#f7f4fc; --papier:#ffffff; --papier2:#f1ecf9; --encre:#1e1938; --doux:#6d6789; --trait:#e3dcf0;
+  --accent:#ff5a4f; --accent-encre:#ffffff; --bleu:#3b78ff; --or:#f5b524; --vert:#16a874; --rouge:#e5484d;
+  --fr:#3b78ff; --en:#e5484d; --ja:#8b5cf6;
+  --holo:linear-gradient(115deg,#ff9a9e 0%,#fecfef 18%,#a1c4fd 38%,#c2e9fb 52%,#d4fc79 70%,#fbc2eb 88%,#ff9a9e 100%);
+  --ombre:0 1px 2px rgb(30 25 56/.06),0 6px 22px -8px rgb(30 25 56/.18);
+  --r:18px; --r-s:12px;
+  --f-titre:"Fredoka",system-ui,sans-serif; --f-texte:"Nunito",system-ui,sans-serif; --f-chiffre:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --fond:#131022; --papier:#1d1933; --papier2:#262143; --encre:#f3effd; --doux:#a39dc2; --trait:#312b52;
+  --ombre:0 1px 2px rgb(0 0 0/.3),0 8px 26px -10px rgb(0 0 0/.6); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --fond:#131022; --papier:#1d1933; --papier2:#262143; --encre:#f3effd; --doux:#a39dc2; --trait:#312b52;
+  --ombre:0 1px 2px rgb(0 0 0/.3),0 8px 26px -10px rgb(0 0 0/.6); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--fond);color:var(--encre);font:16px/1.45 var(--f-texte);-webkit-font-smoothing:antialiased;min-height:100vh;
+  background-image:radial-gradient(1200px 500px at 110% -10%,color-mix(in srgb,var(--bleu) 10%,transparent),transparent 60%),radial-gradient(900px 420px at -20% 0%,color-mix(in srgb,var(--accent) 9%,transparent),transparent 60%);
+  background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--bleu)}
+h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005em}
+.chiffre{font-family:var(--f-chiffre);font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ───── Structure ───── */
+.app{max-width:1120px;margin:0 auto;padding:12px 16px calc(96px + env(safe-area-inset-bottom))}
+.tete{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 14px}
+.marque{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.marque .logo{width:36px;height:36px;border-radius:11px;background:var(--holo);background-size:200% 200%;animation:moire 8s ease-in-out infinite;display:grid;place-items:center;box-shadow:var(--ombre)}
+.marque .logo svg{width:22px;height:22px}
+.marque b{font-family:var(--f-titre);font-size:22px;font-weight:700;letter-spacing:.01em}
+@keyframes moire{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.tete-actions{display:flex;gap:6px;align-items:center}
+.icone-btn{width:40px;height:40px;border-radius:12px;border:1px solid var(--trait);background:var(--papier);display:grid;place-items:center;color:var(--doux)}
+.icone-btn:hover{color:var(--encre)}
+.icone-btn svg{width:20px;height:20px}
+
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 8px calc(8px + env(safe-area-inset-bottom));
+  background:color-mix(in srgb,var(--papier) 92%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--trait)}
+.nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;color:var(--doux);text-decoration:none;font-size:11.5px;font-weight:700;border-radius:12px}
+.nav a svg{width:23px;height:23px}
+.nav a[aria-current="page"]{color:var(--encre)}
+.nav a[aria-current="page"] svg{color:var(--accent)}
+.nav a.scan-bouton{flex:0 0 auto;margin-top:-22px}
+.nav a.scan-bouton span.rond{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--accent-encre);box-shadow:0 8px 20px -6px color-mix(in srgb,var(--accent) 70%,transparent),inset 0 0 0 4px rgb(255 255 255/.18)}
+.nav a.scan-bouton span.rond svg{width:28px;height:28px;color:inherit}
+@media (min-width:900px){
+  .app{padding-bottom:40px}
+  .nav{position:sticky;top:0;bottom:auto;margin:0 auto 18px;max-width:1120px;border:1px solid var(--trait);border-radius:16px;justify-content:center;gap:4px;padding:6px;align-items:center;box-shadow:var(--ombre)}
+  .nav a{flex:0 0 auto;flex-direction:row;gap:8px;font-size:14.5px;padding:9px 16px}
+  .nav a[aria-current="page"]{background:var(--papier2)}
+  .nav a.scan-bouton{margin:0}
+  .nav a.scan-bouton span.rond{width:auto;height:auto;border-radius:12px;padding:8px 14px;gap:8px;display:flex;box-shadow:none}
+  .nav a.scan-bouton span.rond svg{width:20px;height:20px}
+  .nav a.scan-bouton .lbl-scan{display:inline}
+}
+.lbl-scan{display:none}
+
+/* ───── Éléments ───── */
+.carte-ui{background:var(--papier);border:1px solid var(--trait);border-radius:var(--r);box-shadow:var(--ombre);padding:16px}
+.grille{display:grid;gap:14px}
+@media (min-width:900px){.grille.deux{grid-template-columns:1.25fr 1fr}}
+.titre-section{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:22px 2px 10px}
+.titre-section h2{font-size:21px}
+.titre-section h2{min-width:0}
+.titre-section .petit{color:var(--doux);font-size:13.5px;white-space:nowrap}
+.titre-section .btn{white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:13px;border:1px solid var(--trait);background:var(--papier);padding:10px 15px;font-weight:700;font-size:15px;text-decoration:none;color:var(--encre)}
+.btn svg{width:18px;height:18px}
+.btn.principal{background:var(--accent);border-color:transparent;color:var(--accent-encre);box-shadow:0 6px 16px -8px color-mix(in srgb,var(--accent) 80%,transparent)}
+.btn.bleu{background:var(--bleu);border-color:transparent;color:#fff}
+.btn.danger{color:var(--rouge)}
+.btn.discret{background:transparent}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.plein{width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.puce{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--papier2);color:var(--doux);white-space:nowrap}
+.puce.fr{background:color-mix(in srgb,var(--fr) 14%,transparent);color:var(--fr)}
+.puce.en{background:color-mix(in srgb,var(--en) 14%,transparent);color:var(--en)}
+.puce.ja{background:color-mix(in srgb,var(--ja) 16%,transparent);color:var(--ja)}
+.puce.gradee{background:var(--holo);color:#2a2346}
+.puce.vert{background:color-mix(in srgb,var(--vert) 15%,transparent);color:var(--vert)}
+.hausse{color:var(--vert)} .baisse{color:var(--rouge)}
+.vide{padding:28px 16px;text-align:center;color:var(--doux)}
+.vide svg{width:46px;height:46px;opacity:.6;margin-bottom:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--trait);background:var(--papier);border-radius:999px;padding:6px 12px;font-size:13.5px;font-weight:700;color:var(--doux)}
+.chip[aria-pressed="true"]{background:var(--encre);color:var(--fond);border-color:var(--encre)}
+.champ{display:flex;flex-direction:column;gap:5px}
+.champ>span{font-size:13px;font-weight:800;color:var(--doux)}
+.champ input,.champ select,.champ textarea{width:100%;border:1px solid var(--trait);background:var(--papier);border-radius:12px;padding:11px 12px;font-size:16px;min-height:46px}
+.champ textarea{min-height:76px;resize:vertical}
+.champ input:focus,.champ select:focus,.champ textarea:focus,.recherche input:focus{outline:2px solid color-mix(in srgb,var(--bleu) 55%,transparent);outline-offset:1px}
+.champs{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.champs .large{grid-column:1/-1}
+.segment{display:flex;background:var(--papier2);border-radius:13px;padding:4px;gap:4px}
+.segment button{flex:1;border:0;background:transparent;border-radius:10px;padding:9px 8px;font-weight:800;color:var(--doux);font-size:14.5px}
+.segment button[aria-pressed="true"]{background:var(--papier);color:var(--encre);box-shadow:var(--ombre)}
+.toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--encre);color:var(--fond);padding:10px 16px;border-radius:12px;font-weight:700;font-size:14.5px;z-index:90;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.ok{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (min-width:900px){.toast{bottom:28px}}
+.chargement{display:inline-block;width:18px;height:18px;border-radius:50%;border:2.5px solid var(--trait);border-top-color:var(--accent);animation:tour .8s linear infinite;vertical-align:-3px}
+@keyframes tour{to{transform:rotate(360deg)}}
+.squelette{background:linear-gradient(90deg,var(--papier2),var(--trait),var(--papier2));background-size:200% 100%;animation:moire 1.4s linear infinite;border-radius:10px}
+
+/* ───── Connexion ───── */
+.connexion{max-width:420px;margin:7vh auto 0;display:grid;gap:16px}
+.connexion .accroche{text-align:center}
+.connexion .accroche .logo{width:76px;height:76px;margin:0 auto 12px;border-radius:24px;background:var(--holo);background-size:200% 200%;animation:moire 8s ease-in-out infinite;display:grid;place-items:center;box-shadow:var(--ombre)}
+.connexion .accroche .logo svg{width:44px;height:44px}
+.connexion h1{font-size:32px}
+.connexion p{color:var(--doux);margin:6px 0 0}
+
+/* ───── Récap ───── */
+.valeur-tete{position:relative;overflow:hidden;padding:20px}
+.valeur-tete::before{content:"";position:absolute;inset:-40% -10% auto auto;width:70%;height:180%;background:var(--holo);opacity:.18;filter:blur(18px);transform:rotate(18deg);pointer-events:none}
+.valeur-tete .label{font-size:13.5px;font-weight:800;color:var(--doux);text-transform:uppercase;letter-spacing:.06em}
+.valeur-tete .total{font-family:var(--f-titre);font-size:44px;font-weight:700;line-height:1.05;margin:4px 0 2px}
+.valeur-tete .delta{font-weight:800;font-size:15px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px;position:relative}
+@media (min-width:600px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{background:var(--papier2);border-radius:14px;padding:10px 12px}
+.kpi span{display:block;font-size:12px;font-weight:800;color:var(--doux)}
+.kpi b{font-family:var(--f-chiffre);font-size:17px}
+.kpi small{display:block}
+.periodes{display:flex;gap:4px}
+.periodes button{border:0;background:transparent;color:var(--doux);font-weight:800;font-size:13px;padding:5px 9px;border-radius:9px}
+.periodes button[aria-pressed="true"]{background:var(--papier2);color:var(--encre)}
+.courbe{position:relative;width:100%;height:210px;margin-top:8px;touch-action:pan-y}
+.courbe svg{width:100%;height:100%;display:block;overflow:visible}
+.courbe .bulle{position:absolute;top:0;transform:translateX(-50%);background:var(--encre);color:var(--fond);font-size:12.5px;font-weight:700;padding:5px 8px;border-radius:9px;pointer-events:none;white-space:nowrap}
+.courbe .bulle small{display:block;font-weight:600;opacity:.75;font-size:11px}
+.legende{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--doux);margin-top:6px}
+.legende i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.legende i.pointille{background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 7px)!important;height:2px}
+.barres{display:grid;gap:9px}
+.barre-l{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;font-size:14px}
+.barre-l .piste{height:10px;border-radius:6px;background:var(--papier2);overflow:hidden}
+.barre-l .piste i{display:block;height:100%;border-radius:6px}
+
+/* ───── Listes de cartes ───── */
+.liste{display:grid;gap:8px}
+.ligne{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 12px 8px 8px;background:var(--papier);border:1px solid var(--trait);border-radius:15px;text-align:left;width:100%;color:inherit}
+.ligne:hover{border-color:color-mix(in srgb,var(--bleu) 45%,var(--trait))}
+.vignette{width:52px;aspect-ratio:63/88;border-radius:5px;background:var(--papier2) center/cover;box-shadow:0 1px 3px rgb(0 0 0/.18);overflow:hidden}
+.vignette img{width:100%;height:100%;object-fit:cover;display:block}
+.ligne .nom{font-weight:800;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ligne .meta{font-size:13px;color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px;align-items:center;margin-top:2px}
+.ligne .droite{text-align:right}
+.ligne .droite b{font-family:var(--f-chiffre);font-size:15.5px;display:block}
+.ligne .droite small{font-size:12px;color:var(--doux)}
+.galerie{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+@media (min-width:700px){.galerie{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+.tuile{border:0;background:transparent;padding:0;text-align:left;color:inherit;display:flex;flex-direction:column;gap:6px}
+.tuile .img{position:relative;aspect-ratio:63/88;border-radius:9px;overflow:hidden;background:var(--papier2);box-shadow:0 2px 8px -2px rgb(0 0 0/.25);transition:transform .2s}
+.tuile:hover .img{transform:translateY(-3px) rotate(-.6deg)}
+.tuile .img img{width:100%;height:100%;object-fit:cover;display:block}
+.tuile .img .sans{position:absolute;inset:0;display:grid;place-items:center;padding:10px;text-align:center;font-family:var(--f-titre);color:var(--doux);font-size:15px}
+.tuile .img .marques{position:absolute;left:6px;top:6px;display:flex;gap:4px}
+.tuile .img .marques .puce{background:var(--papier);box-shadow:0 1px 4px rgb(0 0 0/.25)}
+.tuile .img .possede{position:absolute;right:6px;top:6px;background:var(--vert);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:2px 7px}
+.tuile .t-nom{font-weight:800;font-size:14.5px;line-height:1.2}
+.tuile .t-meta{font-size:12.5px;color:var(--doux);line-height:1.25}
+
+/* ───── Recherche ───── */
+.recherche{position:relative}
+.recherche input{width:100%;border:1px solid var(--trait);background:var(--papier);border-radius:16px;padding:15px 48px 15px 48px;font-size:17px;box-shadow:var(--ombre)}
+.recherche>svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:21px;height:21px;color:var(--doux)}
+.recherche .effacer{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--doux);width:36px;height:36px;border-radius:10px}
+.aide-recherche{font-size:13px;color:var(--doux);margin:8px 4px 0}
+.aide-recherche code{font-family:var(--f-chiffre);font-size:12px;background:var(--papier2);padding:1px 5px;border-radius:5px}
+.etat-index{font-size:13px;color:var(--doux);display:flex;align-items:center;gap:8px;margin:10px 4px}
+
+/* ───── Feuille (fiche, formulaires) ───── */
+.voile{position:fixed;inset:0;z-index:50;background:rgb(10 8 22/.45);backdrop-filter:blur(3px);opacity:0;transition:opacity .2s}
+.voile.ok{opacity:1}
+.feuille{position:fixed;z-index:51;left:0;right:0;bottom:0;max-height:94vh;overflow:auto;background:var(--fond);border-radius:24px 24px 0 0;padding:10px 16px calc(24px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);overscroll-behavior:contain}
+.feuille.ok{transform:none}
+.feuille .poignee{width:44px;height:5px;border-radius:3px;background:var(--trait);margin:2px auto 10px}
+.feuille .f-tete{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.feuille .f-tete h2{font-size:21px}
+@media (min-width:800px){
+  .feuille{left:50%;right:auto;bottom:auto;top:50%;width:min(860px,94vw);max-height:90vh;border-radius:24px;transform:translate(-50%,-46%) scale(.98);opacity:0;transition:.22s}
+  .feuille.ok{transform:translate(-50%,-50%);opacity:1}
+  .feuille .poignee{display:none}
+}
+.fiche{display:grid;gap:16px}
+@media (min-width:800px){.fiche{grid-template-columns:300px 1fr;align-items:start}}
+.fiche .grande{position:relative;aspect-ratio:63/88;border-radius:14px;overflow:hidden;background:var(--papier2);box-shadow:0 14px 30px -12px rgb(0 0 0/.5);max-width:min(240px,62vw);width:100%;margin:0 auto}
+@media (min-width:800px){.fiche .grande{max-width:320px}}
+.fiche .grande img{width:100%;height:100%;object-fit:cover;display:block}
+.fiche .grande::after{content:"";position:absolute;inset:0;background:var(--holo);mix-blend-mode:color-dodge;opacity:0;transition:opacity .3s;background-size:250% 250%;pointer-events:none}
+.fiche .grande:hover::after{opacity:.22;animation:moire 3s linear infinite}
+.fiche h3{font-size:24px;line-height:1.15}
+.fiche .sous{color:var(--doux);font-size:14.5px;margin-top:3px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cotes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (min-width:520px){.cotes{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.cote{background:var(--papier);border:1px solid var(--trait);border-radius:13px;padding:9px 11px}
+.cote span{display:block;font-size:11.5px;font-weight:800;color:var(--doux)}
+.cote b{font-family:var(--f-chiffre);font-size:16px}
+.cote.grande-cote{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;background:var(--papier2);border:0}
+.cote.grande-cote b{font-size:27px}
+.source{font-size:12.5px;color:var(--doux);margin-top:8px}
+.exemplaires{display:grid;gap:6px;margin-top:6px}
+
+/* ───── Scan ───── */
+.scan-zone{position:relative;background:#000;border-radius:20px;overflow:hidden;aspect-ratio:3/4;max-height:68vh;margin:0 auto;width:100%;max-width:520px}
+.scan-zone video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-zone .guide{position:absolute;left:50%;top:50%;height:84%;aspect-ratio:63/88;transform:translate(-50%,-50%);border-radius:14px;box-shadow:0 0 0 9999px rgb(0 0 0/.45);outline:2px dashed rgb(255 255 255/.85);outline-offset:0}
+.scan-zone .guide::after{content:"Cadre la carte ici, bien à plat";position:absolute;left:0;right:0;bottom:-30px;text-align:center;color:#fff;font-weight:700;font-size:14px}
+.scan-zone .coin{position:absolute;width:26px;height:26px;border:4px solid var(--or)}
+.scan-zone .ctl{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;align-items:center;gap:22px}
+.obturateur{width:72px;height:72px;border-radius:50%;border:5px solid #fff;background:var(--accent);box-shadow:0 0 0 3px rgb(0 0 0/.25)}
+.scan-zone .ctl .icone-btn{background:rgb(0 0 0/.5);border-color:rgb(255 255 255/.25);color:#fff}
+.editeur{position:relative;margin:0 auto;max-width:440px;width:100%;touch-action:none;user-select:none}
+.editeur canvas{width:100%;display:block;border-radius:12px;background:#000}
+.loupe{position:absolute;width:118px;height:118px;border-radius:50%;border:3px solid #fff;box-shadow:0 6px 18px rgb(0 0 0/.4);pointer-events:none;overflow:hidden;background:#000}
+.loupe canvas{width:100%;height:100%;border-radius:0}
+.mesures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mesure{background:var(--papier);border:1px solid var(--trait);border-radius:14px;padding:10px 12px}
+.mesure span{display:block;font-size:12px;font-weight:800;color:var(--doux)}
+.mesure b{font-family:var(--f-chiffre);font-size:22px}
+.mesure small{display:block;font-size:12px;color:var(--doux)}
+.controle{display:grid;gap:12px}
+.controle .critere>span{font-weight:800;font-size:14.5px;display:block;margin-bottom:6px}
+.controle .critere small{color:var(--doux);font-weight:600}
+.niveaux{display:flex;flex-wrap:wrap;gap:6px}
+.niveaux button{border:1px solid var(--trait);background:var(--papier);border-radius:10px;padding:7px 10px;font-size:13.5px;font-weight:700;color:var(--doux)}
+.niveaux button[aria-pressed="true"]{border-color:var(--bleu);background:color-mix(in srgb,var(--bleu) 12%,var(--papier));color:var(--encre)}
+.note-estimee{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;background:var(--papier);border:1px solid var(--trait);position:relative;overflow:hidden}
+.note-estimee .badge{width:64px;height:64px;flex:none;border-radius:16px;background:var(--holo);display:grid;place-items:center;font-family:var(--f-titre);font-weight:700;font-size:28px;color:#2a2346}
+.note-estimee p{margin:2px 0 0;color:var(--doux);font-size:13.5px}
+.candidats{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+.etapes{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:800;color:var(--doux);margin-bottom:12px;flex-wrap:wrap}
+.etapes span{padding:4px 10px;border-radius:999px;background:var(--papier2)}
+.etapes span.ici{background:var(--encre);color:var(--fond)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="tete">
+    <a class="marque" href="#recap" aria-label="Holo Cote, accueil">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="2.5" width="14" height="19" rx="2.5" fill="#fff" fill-opacity=".85" stroke="#2a2346" stroke-width="1.6"/><path d="M12 7.3l1.3 2.7 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4z" fill="#2a2346"/></svg></span>
+      <b>Holo Cote</b>
+    </a>
+    <div class="tete-actions" id="tete-actions" hidden>
+      <button class="icone-btn" id="btn-theme" title="Thème clair ou sombre" aria-label="Changer de thème"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <a class="icone-btn" href="#reglages" title="Réglages" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a>
+    </div>
+  </header>
+
+  <nav class="nav" id="nav" hidden aria-label="Navigation">
+    <a href="#recap" data-vue="recap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span>Récap</span></a>
+    <a href="#recherche" data-vue="recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Chercher</span></a>
+    <a href="#scan" data-vue="scan" class="scan-bouton" aria-label="Scanner une carte"><span class="rond"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8.5" y="7.5" width="7" height="9" rx="1.2"/></svg><span class="lbl-scan">Scanner</span></span></a>
+    <a href="#collection" data-vue="collection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="9" rx="1.5"/><rect x="14" y="4" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="18" height="5" rx="1.5"/></svg><span>Collection</span></a>
+    <a href="#ventes" data-vue="ventes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span>Ventes</span></a>
+  </nav>
+
+  <main id="vue"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   Holo Cote : classeur de cartes Pokémon
+   Données de cartes et cotes : TCGdex (cartes FR / EN / JA, cotes Cardmarket en €, mises à jour chaque jour).
+   Stockage : Supabase, schéma « pokemon » (projet Séance musculation), relevé des cotes chaque nuit côté serveur.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const SUPA_URL = "https://iqztehywqhwcvgskeosu.supabase.co";
+const SUPA_CLE = "sb_publishable_ykcPtbs1MDlI2RjYK4WgVw_RfcHTB9a";
+const TCGDEX = "https://api.tcgdex.net/v2";
+const LANGUES = { fr: "Français", en: "Anglais", ja: "Japonais" };
+const COURT = { fr: "FR", en: "EN", ja: "JP" };
+const ETATS = { NM: "Near Mint", EX: "Excellent", GD: "Good", LP: "Light Played", PL: "Played", PO: "Poor" };
+const ETATS_FR = { NM: "Quasi neuf", EX: "Excellent", GD: "Bon", LP: "Légèrement joué", PL: "Joué", PO: "Abîmé" };
+const VARIANTES = { normal: "Normale", reverse: "Reverse", holo: "Holo", "premiere-edition": "1re édition", autre: "Autre" };
+const GRADEURS = ["PSA", "PCA", "CGC", "BGS", "CCC", "Collect Aura", "SGC", "Autre"];
+const PLATEFORMES = ["Cardmarket", "eBay", "Vinted", "Leboncoin", "En main propre", "Autre"];
+const COEFS_DEFAUT = { NM: 1, EX: 0.8, GD: 0.65, LP: 0.5, PL: 0.35, PO: 0.2 };
+
+const sb = supabase.createClient(SUPA_URL, SUPA_CLE, {
+  db: { schema: "pokemon" },
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: "holo-cote-auth", detectSessionInUrl: true }
+});
+
+/* ───── Outils ───── */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtEur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
+const fmtEur0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+const fmtUsd = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "USD" });
+const eur = (v, rond) => v == null || isNaN(v) ? "—" : (rond && Math.abs(v) >= 1000 ? fmtEur0 : fmtEur).format(v);
+const pct = v => v == null || !isFinite(v) ? "—" : (v > 0 ? "+" : "") + v.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " %";
+const signe = v => v > 0 ? "hausse" : v < 0 ? "baisse" : "";
+const dateFr = d => d ? new Date(d + (String(d).length === 10 ? "T12:00:00" : "")).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "";
+const aujourdhui = () => new Date().toLocaleDateString("sv-SE");
+const num = v => { if (v === "" || v == null) return null; const n = Number(String(v).replace(",", ".").replace(/\s/g, "")); return isFinite(n) ? n : null; };
+const icone = {
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  etoile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+  etoilePleine: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+  lien: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  fermer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  cartes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="6" y="3" width="12" height="17" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h9"/></svg>',
+  euro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 6.5A7 7 0 1 0 17 17.5M4 10h9M4 14h9"/></svg>',
+  photo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
+  lampe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>'
+};
+function toast(t, ms = 2600) { const e = $("#toast"); e.textContent = t; e.classList.add("ok"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("ok"), ms); }
+function erreur(e, quoi) {
+  console.error(quoi, e);
+  const m = String(e?.message || e || "");
+  if (/Invalid schema|PGRST106/.test(m)) return toast("Base pas encore prête : l’espace « pokemon » n’est pas exposé dans Supabase.", 5000);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return toast("Pas de connexion internet pour le moment.", 4000);
+  toast((quoi ? quoi + " : " : "") + m.slice(0, 140), 5000);
+}
+function imgCarte(url, taille = "low") { return url ? `${url}/${taille}.webp` : ""; }
+
+/* ───── Thème ───── */
+(function () {
+  try { const t = localStorage.getItem("holo-cote-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  $("#btn-theme").addEventListener("click", () => {
+    const r = document.documentElement, sombre = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = sombre ? "light" : "dark";
+    try { localStorage.setItem("holo-cote-theme", r.dataset.theme); } catch (e) {}
+    if (ETAT.vue === "recap") rendre();
+  });
+})();
+
+/* ═══════════ Cache local (IndexedDB) pour l'index des cartes ═══════════ */
+const IDB = {
+  db: null,
+  ouvrir() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((ok, ko) => {
+      const r = indexedDB.open("holo-cote", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => { this.db = r.result; ok(this.db); };
+      r.onerror = () => ko(r.error);
+    });
+  },
+  async lire(k) { try { const db = await this.ouvrir(); return await new Promise(ok => { const q = db.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => ok(q.result); q.onerror = () => ok(null); }); } catch (e) { return null; } },
+  async ecrire(k, v) { try { const db = await this.ouvrir(); await new Promise(ok => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = ok; t.onerror = ok; }); } catch (e) {} }
+};
+
+/* ═══════════ TCGdex ═══════════ */
+async function api(lang, chemin) {
+  const r = await fetch(`${TCGDEX}/${lang}/${chemin}`);
+  if (!r.ok) throw new Error(`TCGdex ${r.status}`);
+  return r.json();
+}
+
+/* Index de toutes les cartes d'une langue (nom, numéro, set), gardé 5 jours sur l'appareil. */
+const INDEX = { fr: null, en: null, ja: null };
+const EN_COURS = {};
+function norm(s) {
+  return String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase()
+    .replace(/[’'`´]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+function preparerIndex(lang, cartes, sets) {
+  const parSet = {};
+  sets.forEach((s, i) => { parSet[s.id] = { id: s.id, nom: s.name, n: norm(s.name), off: s.cardCount?.official ?? null, tot: s.cardCount?.total ?? null, rang: i, logo: s.logo || s.symbol || "" }; });
+  const liste = cartes.map(c => {
+    const i = c.id.lastIndexOf("-"), set = c.id.slice(0, i);
+    const n = norm(c.name);
+    return { id: c.id, lang, local: c.localId, num: /^\d+$/.test(c.localId) ? parseInt(c.localId, 10) : null, nom: c.name, n, mots: n.split(" "), set, img: c.image || "" };
+  });
+  return { cartes: liste, sets: parSet, setsListe: Object.values(parSet) };
+}
+async function chargerIndex(lang, surProgression) {
+  if (INDEX[lang]) return INDEX[lang];
+  if (EN_COURS[lang]) return EN_COURS[lang];
+  EN_COURS[lang] = (async () => {
+    const cache = await IDB.lire("index-" + lang);
+    if (cache && Date.now() - cache.t < 5 * 864e5) { INDEX[lang] = preparerIndex(lang, cache.cartes, cache.sets); return INDEX[lang]; }
+    surProgression?.(lang);
+    try {
+      const [cartes, sets] = await Promise.all([api(lang, "cards"), api(lang, "sets")]);
+      IDB.ecrire("index-" + lang, { t: Date.now(), cartes, sets });
+      INDEX[lang] = preparerIndex(lang, cartes, sets);
+    } catch (e) {
+      if (cache) INDEX[lang] = preparerIndex(lang, cache.cartes, cache.sets); else throw e;
+    }
+    return INDEX[lang];
+  })();
+  try { return await EN_COURS[lang]; } finally { delete EN_COURS[lang]; }
+}
+
+/* ═══════════ Recherche intelligente ═══════════
+   - sans accents ni majuscules, tolère les fautes de frappe (1 ou 2 lettres)
+   - « 4/102 » : numéro et taille du set ; « 25 » seul : numéro ou nom de set (ex. « 151 »)
+   - mots de set (« ténèbres », « base », « sv2a ») ; « fr », « en », « jp » pour la langue
+   - les cartes possédées remontent en premier à pertinence égale */
+const MOTS_LANGUE = { fr: "fr", vf: "fr", francais: "fr", francaise: "fr", en: "en", eng: "en", anglais: "en", english: "en", jp: "ja", ja: "ja", jap: "ja", japonais: "ja", japonaise: "ja", japan: "ja" };
+function analyserRequete(q) {
+  const r = { mots: [], num: null, denom: null, langue: null, brut: q };
+  let t = String(q || "");
+  const m = t.match(/(\d{1,3})\s*\/\s*(\d{1,3})/);
+  if (m) { r.num = parseInt(m[1], 10); r.denom = parseInt(m[2], 10); t = t.replace(m[0], " "); }
+  norm(t).split(" ").filter(Boolean).forEach(w => {
+    if (MOTS_LANGUE[w] && !r.langue) r.langue = MOTS_LANGUE[w];
+    else r.mots.push(w.replace(/^#/, ""));
+  });
+  return r;
+}
+function distance(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prec = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const cour = [i]; let minLigne = i;
+    for (let j = 1; j <= b.length; j++) {
+      cour[j] = Math.min(prec[j] + 1, cour[j - 1] + 1, prec[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (cour[j] < minLigne) minLigne = cour[j];
+    }
+    if (minLigne > max) return max + 1;
+    prec = cour;
+  }
+  return prec[b.length];
+}
+function scoreMot(w, c, set) {
+  if (c.mots.includes(w)) return 30;
+  if (c.mots.some(x => x.startsWith(w))) return w.length >= 2 ? 22 : 8;
+  if (w.length >= 3 && c.n.includes(w)) return 15;
+  if (set && (set.id.toLowerCase() === w || set.n.split(" ").includes(w))) return 14;
+  if (set && w.length >= 3 && set.n.split(" ").some(x => x.startsWith(w))) return 11;
+  if (/^\d+$/.test(w) && c.num === parseInt(w, 10)) return 16;
+  if (w.length >= 4) {
+    const max = w.length >= 7 ? 2 : 1;
+    if (c.mots.some(x => x[0] === w[0] && distance(w, x.slice(0, w.length + max), max) <= max)) return 9;
+  }
+  return 0;
+}
+function rechercher(q, langues, limite = 400) {
+  const r = analyserRequete(q);
+  const langs = r.langue ? [r.langue] : langues;
+  if (!r.mots.length && r.num == null) return { r, res: [] };
+  const possedees = new Set(ETAT.cartes.filter(c => c.statut === "possedee").map(c => c.langue + ":" + c.carte_id));
+  const res = [];
+  for (const l of langs) {
+    const ix = INDEX[l]; if (!ix) continue;
+    for (const c of ix.cartes) {
+      const set = ix.sets[c.set];
+      let s = 0;
+      if (r.num != null) {
+        if (c.num !== r.num) continue;
+        s += 25;
+        if (r.denom != null && set) s += (set.off === r.denom || set.tot === r.denom) ? 30 : -12;
+      }
+      let ok = true;
+      for (const w of r.mots) { const v = scoreMot(w, c, set); if (!v) { ok = false; break; } s += v; }
+      if (!ok) continue;
+      if (r.mots.length && c.n === r.mots.join(" ")) s += 12;
+      if (possedees.has(l + ":" + c.id)) s += 4;
+      s += (set ? set.rang / ix.setsListe.length : 0) * 3;
+      res.push({ c, s, set });
+    }
+  }
+  res.sort((a, b) => b.s - a.s);
+  return { r, res: res.slice(0, limite) };
+}
+
+/* ═══════════ État de l'appli ═══════════ */
+const ETAT = { session: null, vue: "recap", cartes: [], suivis: [], valeurs: [], reglages: { coefs: { ...COEFS_DEFAUT } }, charge: false, periode: "3m",
+  recherche: { q: "", langues: ["fr", "en", "ja"], vus: 48 }, filtres: { type: "tous", langue: "toutes", tri: "valeur", q: "" } };
+
+async function chargerDonnees() {
+  const [c, s, v, g] = await Promise.all([
+    sb.from("ma_collection").select("*").order("cree_le", { ascending: false }),
+    sb.from("suivis").select("*").order("cree_le", { ascending: false }),
+    sb.from("valeurs").select("*").order("jour"),
+    sb.from("reglages").select("*").maybeSingle()
+  ]);
+  const err = c.error || s.error || v.error || g.error;
+  if (err) throw err;
+  ETAT.cartes = c.data || [];
+  ETAT.suivis = s.data || [];
+  ETAT.valeurs = v.data || [];
+  ETAT.reglages = g.data || { coefs: { ...COEFS_DEFAUT } };
+  ETAT.charge = true;
+}
+/* Cotes à rafraîchir : cartes jamais relevées ou relevées il y a plus de 2 jours (le relevé de nuit s'occupe du reste). */
+async function rafraichirCotesAnciennes() {
+  const limite = new Date(Date.now() - 2 * 864e5).toLocaleDateString("sv-SE");
+  const vus = new Set(), a_faire = [];
+  ETAT.cartes.forEach(c => { const k = c.langue + ":" + c.carte_id; if (c.statut === "possedee" && !vus.has(k) && (!c.cote_jour || c.cote_jour < limite)) { vus.add(k); a_faire.push(c); } });
+  for (const c of a_faire.slice(0, 15)) { try { await sb.rpc("rafraichir_prix", { p_carte: c.carte_id, p_langue: c.langue }); } catch (e) {} }
+  const dernier = ETAT.valeurs.at(-1)?.jour;
+  if (a_faire.length || dernier !== aujourdhui()) {
+    await sb.rpc("calculer_mes_valeurs");
+    await chargerDonnees();
+    if (["recap", "collection"].includes(ETAT.vue)) rendre();
+  }
+}
+
+/* ═══════════ Navigation ═══════════ */
+const VUES = { recap: vueRecap, recherche: vueRecherche, scan: vueScan, collection: vueCollection, ventes: vueVentes, reglages: vueReglages };
+function routeur() {
+  const v = (location.hash || "#recap").slice(1).split("?")[0];
+  if (!ETAT.session) { vueConnexion(); return; }
+  if (ETAT.vue === "scan" && v !== "scan") Scan.arreter();
+  ETAT.vue = VUES[v] ? v : "recap";
+  $$("#nav a").forEach(a => { if (a.dataset.vue === ETAT.vue) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  rendre();
+  window.scrollTo({ top: 0 });
+}
+function rendre() { (VUES[ETAT.vue] || vueRecap)(); }
+window.addEventListener("hashchange", routeur);
+
+/* ═══════════ Connexion ═══════════ */
+function vueConnexion() {
+  $("#nav").hidden = true; $("#tete-actions").hidden = true;
+  $("#vue").innerHTML = `
+  <section class="connexion">
+    <div class="accroche">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="2.5" width="14" height="19" rx="2.5" fill="#fff" fill-opacity=".85" stroke="#2a2346" stroke-width="1.4"/><path d="M12 7.3l1.3 2.7 2.9.4-2.1 2 .5 2.9-2.6-1.4-2.6 1.4.5-2.9-2.1-2 2.9-.4z" fill="#2a2346"/></svg></div>
+      <h1>Holo Cote</h1>
+      <p>Scanne, range et suis la cote de tes cartes Pokémon.</p>
+    </div>
+    <form class="carte-ui grille" id="f-connexion">
+      <label class="champ"><span>E-mail</span><input type="email" name="email" autocomplete="email" required></label>
+      <label class="champ"><span>Mot de passe</span><input type="password" name="mdp" autocomplete="current-password" minlength="6"></label>
+      <button class="btn principal plein" type="submit">Se connecter</button>
+      <button class="btn plein" type="button" id="btn-lien">Recevoir un lien de connexion par e-mail</button>
+      <p class="source" style="margin:0">Même compte que tes applis Muscu et Coût Réel.</p>
+    </form>
+  </section>`;
+  const f = $("#f-connexion");
+  f.addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = f.email.value.trim(), mdp = f.mdp.value;
+    if (!mdp) return toast("Entre ton mot de passe, ou demande un lien par e-mail.");
+    const b = f.querySelector("button[type=submit]"); b.disabled = true; b.innerHTML = '<span class="chargement"></span>';
+    const { error } = await sb.auth.signInWithPassword({ email, password: mdp });
+    b.disabled = false; b.textContent = "Se connecter";
+    if (error) toast(/Invalid login/i.test(error.message) ? "E-mail ou mot de passe incorrect." : error.message, 4000);
+  });
+  $("#btn-lien").addEventListener("click", async () => {
+    const email = f.email.value.trim(); if (!email) return toast("Entre d’abord ton e-mail.");
+    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false } });
+    toast(error ? error.message : "Lien envoyé : ouvre l’e-mail sur cet appareil.", 4500);
+  });
+}
+
+/* ═══════════ Courbe (SVG maison) ═══════════
+   series : [{ nom, couleur, points:[{x:Date, y:Number, estime:bool}], aire }] */
+function courbe(conteneur, series, opts = {}) {
+  const tous = series.flatMap(s => s.points).filter(p => p.y != null);
+  if (tous.length < 1) { conteneur.innerHTML = `<div class="vide" style="padding:40px 0">${opts.vide || "Pas encore de relevé."}</div>`; return; }
+  const W = conteneur.clientWidth || 600, H = conteneur.clientHeight || 210, g = 46, d = 10, h = 16, b = 26;
+  let xs = tous.map(p => +p.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  if (x0 === x1) { x0 -= 864e5 * 3; x1 += 864e5 * 3; }
+  let y0 = Math.min(...tous.map(p => p.y)), y1 = Math.max(...tous.map(p => p.y));
+  if (y0 === y1) { y0 = y0 * .9; y1 = y1 * 1.1 || 1; }
+  const marge = (y1 - y0) * .12; y0 = Math.max(0, y0 - marge); y1 += marge;
+  const X = v => g + (v - x0) / (x1 - x0) * (W - g - d), Y = v => h + (1 - (v - y0) / (y1 - y0)) * (H - h - b);
+  const graduations = [0, .5, 1].map(f => y0 + (y1 - y0) * f);
+  const css = getComputedStyle(document.documentElement);
+  const trait = css.getPropertyValue("--trait").trim(), doux = css.getPropertyValue("--doux").trim();
+  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(opts.label || "Évolution")}">`;
+  svg += `<defs>${series.map((s, i) => `<linearGradient id="aire${i}${opts.id || ""}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.couleur}" stop-opacity=".28"/><stop offset="1" stop-color="${s.couleur}" stop-opacity="0"/></linearGradient>`).join("")}</defs>`;
+  graduations.forEach(v => { svg += `<line x1="${g}" x2="${W - d}" y1="${Y(v)}" y2="${Y(v)}" stroke="${trait}" stroke-dasharray="3 4"/><text x="${g - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="${doux}" font-family="JetBrains Mono,monospace">${esc(v >= 100 ? Math.round(v) : v.toFixed(v >= 10 ? 0 : 2))}</text>`; });
+  [x0, x1].forEach((v, i) => { svg += `<text x="${i ? W - d : g}" y="${H - 6}" text-anchor="${i ? "end" : "start"}" font-size="11" fill="${doux}">${esc(new Date(v).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }))}</text>`; });
+  series.forEach((s, i) => {
+    const pts = s.points.filter(p => p.y != null).sort((a, b) => a.x - b.x);
+    if (!pts.length) return;
+    if (s.aire && pts.length > 1) svg += `<path d="M${X(+pts[0].x)},${Y(pts[0].y)} ${pts.map(p => `L${X(+p.x)},${Y(p.y)}`).join(" ")} L${X(+pts.at(-1).x)},${H - b} L${X(+pts[0].x)},${H - b}Z" fill="url(#aire${i}${opts.id || ""})"/>`;
+    for (let k = 1; k < pts.length; k++) {
+      const a = pts[k - 1], c = pts[k], est = a.estime || c.estime;
+      svg += `<line x1="${X(+a.x)}" y1="${Y(a.y)}" x2="${X(+c.x)}" y2="${Y(c.y)}" stroke="${s.couleur}" stroke-width="2.6" stroke-linecap="round" ${est ? 'stroke-dasharray="2 6"' : ""}/>`;
+    }
+    pts.forEach(p => { if (pts.length <= 40 || p === pts.at(-1)) svg += `<circle cx="${X(+p.x)}" cy="${Y(p.y)}" r="${p === pts.at(-1) ? 4.2 : 2.6}" fill="${p.estime ? "var(--fond)" : s.couleur}" stroke="${s.couleur}" stroke-width="2"/>`; });
+  });
+  svg += `<line class="curseur" x1="0" x2="0" y1="${h}" y2="${H - b}" stroke="${doux}" stroke-width="1" opacity="0"/></svg><div class="bulle" hidden></div>`;
+  conteneur.innerHTML = svg;
+  const bulle = conteneur.querySelector(".bulle"), curseur = conteneur.querySelector(".curseur");
+  const jours = [...new Set(tous.map(p => +p.x))].sort((a, b) => a - b);
+  const montrer = ev => {
+    const rect = conteneur.getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - rect.left, vx = px / rect.width * W;
+    let meilleur = jours[0]; for (const j of jours) if (Math.abs(X(j) - vx) < Math.abs(X(meilleur) - vx)) meilleur = j;
+    const lignes = series.map(s => { const p = s.points.find(q => +q.x === meilleur); return p && p.y != null ? `${esc(s.nom)} : <b>${eur(p.y)}</b>${p.estime ? " (estimé)" : ""}` : ""; }).filter(Boolean);
+    curseur.setAttribute("x1", X(meilleur)); curseur.setAttribute("x2", X(meilleur)); curseur.setAttribute("opacity", ".6");
+    bulle.hidden = false; bulle.innerHTML = lignes.join("<br>") + `<small>${esc(new Date(meilleur).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "long" }))}</small>`;
+    bulle.style.left = Math.min(Math.max(X(meilleur) / W * rect.width, 70), rect.width - 70) + "px";
+  };
+  const cacher = () => { bulle.hidden = true; curseur.setAttribute("opacity", "0"); };
+  conteneur.onmousemove = montrer; conteneur.onmouseleave = cacher;
+  conteneur.ontouchstart = montrer; conteneur.ontouchmove = montrer; conteneur.ontouchend = () => setTimeout(cacher, 1600);
+}
+
+/* ═══════════ Calculs de collection ═══════════ */
+function totaux() {
+  const pos = ETAT.cartes.filter(c => c.statut === "possedee"), ven = ETAT.cartes.filter(c => c.statut === "vendue");
+  const t = { brut: 0, gradee: 0, achat: 0, nb: 0, nbGradees: 0, sansCote: 0, ventes: 0, frais: 0, achatVendu: 0, nbVendu: 0, parLangue: { fr: 0, en: 0, ja: 0 } };
+  pos.forEach(c => {
+    const v = (c.valeur_unitaire ?? 0) * c.quantite;
+    if (c.type === "gradee") { t.gradee += v; t.nbGradees += c.quantite; } else t.brut += v;
+    if (c.valeur_unitaire == null) t.sansCote++;
+    t.achat += (c.prix_achat ?? 0) * c.quantite; t.nb += c.quantite; t.parLangue[c.langue] += v;
+  });
+  ven.forEach(c => { t.ventes += (c.prix_vente ?? 0) * c.quantite; t.frais += c.frais_vente ?? 0; t.achatVendu += (c.prix_achat ?? 0) * c.quantite; t.nbVendu += c.quantite; });
+  t.total = t.brut + t.gradee;
+  t.benefice = t.ventes - t.frais - t.achatVendu;
+  return t;
+}
+function ligneCarte(c, droite) {
+  const badge = c.type === "gradee" ? `<span class="puce gradee">${esc(c.gradeur || "Gradée")} ${c.note != null ? esc(String(c.note).replace(".0", "")) : ""}</span>` : `<span class="puce">${esc(c.etat || "NM")}</span>`;
+  return `<button class="ligne" data-ouvrir="${esc(c.id)}">
+    <span class="vignette">${c.image ? `<img loading="lazy" alt="" src="${esc(imgCarte(c.image))}">` : ""}</span>
+    <span style="min-width:0"><span class="nom">${esc(c.nom)}${c.quantite > 1 ? ` <span class="puce">×${c.quantite}</span>` : ""}</span>
+      <span class="meta"><span class="puce ${c.langue}">${COURT[c.langue]}</span>${badge}<span>${esc(c.set_nom || "")} · ${esc(c.numero || "")}</span></span></span>
+    <span class="droite">${droite}</span></button>`;
+}
+
+/* ═══════════ Vue : Récap ═══════════ */
+function vueRecap() {
+  const t = totaux(), pv = t.total - t.achat, pvPct = t.achat ? pv / t.achat * 100 : null;
+  const v = ETAT.valeurs, hier = v.length > 1 ? v.at(-2) : null;
+  const var1 = hier ? t.total - (+hier.valeur_brut + +hier.valeur_gradee) : null;
+  const top = ETAT.cartes.filter(c => c.statut === "possedee" && c.valeur_unitaire != null).sort((a, b) => b.valeur_unitaire * b.quantite - a.valeur_unitaire * a.quantite).slice(0, 5);
+  const maxL = Math.max(1, ...Object.values(t.parLangue));
+  $("#vue").innerHTML = `
+  <section class="grille deux">
+    <div class="carte-ui valeur-tete">
+      <span class="label">Valeur de ma collection</span>
+      <div class="total chiffre" style="font-family:var(--f-titre)">${eur(t.total, true)}</div>
+      <div class="delta">${var1 != null ? `<span class="${signe(var1)}">${var1 >= 0 ? "▲" : "▼"} ${eur(Math.abs(var1))}</span> <span style="color:var(--doux);font-weight:700">depuis le dernier relevé</span>` : `<span style="color:var(--doux);font-weight:700">${t.nb} carte${t.nb > 1 ? "s" : ""} en collection</span>`}</div>
+      <div class="kpis">
+        <div class="kpi"><span>Brutes</span><b>${eur(t.brut, true)}</b></div>
+        <div class="kpi"><span>Gradées (${t.nbGradees})</span><b>${eur(t.gradee, true)}</b></div>
+        <div class="kpi"><span>Prix d’achat</span><b>${eur(t.achat, true)}</b></div>
+        <div class="kpi"><span>Plus-value latente</span><b class="${signe(pv)}">${t.achat ? eur(pv, true) : "—"}</b>${pvPct != null ? `<small class="${signe(pv)}" style="font-weight:800;font-size:12px"> ${pct(pvPct)}</small>` : ""}</div>
+      </div>
+      ${t.sansCote ? `<p class="source">${t.sansCote} lot${t.sansCote > 1 ? "s" : ""} sans cote ni valeur saisie, compté${t.sansCote > 1 ? "s" : ""} 0 €.</p>` : ""}
+    </div>
+    <div class="carte-ui">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="font-size:18px">Évolution</h2>
+        <div class="periodes" role="group" aria-label="Période">${["1m", "3m", "1a", "tout"].map(p => `<button data-periode="${p}" aria-pressed="${ETAT.periode === p}">${{ "1m": "1 M", "3m": "3 M", "1a": "1 an", tout: "Tout" }[p]}</button>`).join("")}</div></div>
+      <div class="courbe" id="courbe-valeur"></div>
+      <div class="legende"><span><i style="background:var(--accent)"></i>Valeur totale</span><span><i style="background:var(--bleu)"></i>Prix d’achat des cartes possédées</span></div>
+    </div>
+  </section>
+
+  <section class="grille deux">
+    <div>
+      <div class="titre-section"><h2>Mes plus belles cartes</h2><a class="petit" href="#collection">Toute la collection</a></div>
+      <div class="liste">${top.length ? top.map(c => ligneCarte(c, `<b>${eur(c.valeur_unitaire * c.quantite)}</b><small>${c.type === "gradee" ? "valeur saisie" : "cote " + eur(c.cote)}</small>`)).join("") : `<div class="carte-ui vide">${icone.cartes}<div>Ta collection est vide.<br>Scanne une carte ou cherche-la pour commencer.</div><div class="btns" style="justify-content:center;margin-top:12px"><a class="btn principal" href="#scan">Scanner</a><a class="btn" href="#recherche">Chercher</a></div></div>`}</div>
+    </div>
+    <div>
+      <div class="titre-section"><h2>Ventes</h2><a class="petit" href="#ventes">Détail</a></div>
+      <div class="carte-ui">
+        <div class="kpis" style="margin-top:0">
+          <div class="kpi"><span>Encaissé</span><b>${eur(t.ventes, true)}</b></div>
+          <div class="kpi"><span>Bénéfice net</span><b class="${signe(t.benefice)}">${t.nbVendu ? eur(t.benefice, true) : "—"}</b></div>
+        </div>
+        <p class="source">${t.nbVendu} carte${t.nbVendu > 1 ? "s" : ""} vendue${t.nbVendu > 1 ? "s" : ""}. Bénéfice = ventes − frais − prix d’achat.</p>
+      </div>
+      <div class="titre-section"><h2>Par langue</h2></div>
+      <div class="carte-ui barres">${Object.entries(t.parLangue).map(([l, v]) => `<div class="barre-l"><span class="puce ${l}" style="justify-self:start">${LANGUES[l]}</span><span class="piste"><i style="width:${v / maxL * 100}%;background:var(--${l})"></i></span><b class="chiffre" style="font-size:13.5px">${eur(v, true)}</b></div>`).join("")}</div>
+    </div>
+  </section>
+  ${ETAT.suivis.length ? `<div class="titre-section"><h2>Cartes suivies</h2><a class="petit" href="#recherche">Chercher</a></div><div class="galerie" id="galerie-suivis">${ETAT.suivis.slice(0, 12).map(tuileSuivi).join("")}</div>` : ""}
+  <p class="source" style="text-align:center;margin-top:26px">Cotes Cardmarket (€) via TCGdex, relevées chaque nuit. Cartes brutes : cote × coefficient d’état (Réglages) ; gradées : ta valeur.</p>`;
+  $$("[data-periode]").forEach(b => b.onclick = () => { ETAT.periode = b.dataset.periode; vueRecap(); });
+  brancherLignes();
+  $$("[data-suivi]").forEach(b => b.onclick = () => ouvrirFiche(b.dataset.lang, b.dataset.suivi));
+  const debut = { "1m": 31, "3m": 92, "1a": 366, tout: 1e5 }[ETAT.periode];
+  const lim = Date.now() - debut * 864e5;
+  const pts = v.filter(x => new Date(x.jour) >= lim).map(x => ({ x: new Date(x.jour + "T12:00:00"), y: +x.valeur_brut + +x.valeur_gradee, achat: +x.cout_achat }));
+  const ajd = aujourdhui();
+  if (!pts.length || pts.at(-1).x.toLocaleDateString("sv-SE") !== ajd) pts.push({ x: new Date(ajd + "T12:00:00"), y: t.total, achat: t.achat });
+  else { pts.at(-1).y = t.total; pts.at(-1).achat = t.achat; }
+  const css = getComputedStyle(document.documentElement);
+  courbe($("#courbe-valeur"), [
+    { nom: "Valeur", couleur: css.getPropertyValue("--accent").trim(), points: pts, aire: true },
+    { nom: "Achats", couleur: css.getPropertyValue("--bleu").trim(), points: pts.map(p => ({ x: p.x, y: p.achat })) }
+  ], { id: "v", label: "Valeur de la collection", vide: "La courbe démarre avec ta première carte." });
+}
+function tuileSuivi(s) {
+  return `<button class="tuile" data-suivi="${esc(s.carte_id)}" data-lang="${esc(s.langue)}">
+    <span class="img">${s.image ? `<img loading="lazy" alt="" src="${esc(imgCarte(s.image))}">` : `<span class="sans">${esc(s.nom)}</span>`}<span class="marques"><span class="puce ${s.langue}">${COURT[s.langue]}</span></span></span>
+    <span class="t-nom">${esc(s.nom || s.carte_id)}</span><span class="t-meta">${esc(s.set_nom || "")} · ${esc(s.numero || "")}</span></button>`;
+}
+function brancherLignes() { $$("[data-ouvrir]").forEach(b => b.onclick = () => { const c = ETAT.cartes.find(x => x.id === b.dataset.ouvrir); if (c) formulaireCarte({ ligne: c }); }); }
+
+/* ═══════════ Vue : Recherche ═══════════ */
+function vueRecherche() {
+  const R = ETAT.recherche;
+  $("#vue").innerHTML = `
+  <div class="recherche">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Dracaufeu, Pikachu 25/102, Ténèbres 136…" value="${esc(R.q)}" aria-label="Chercher une carte">
+    <button class="effacer" id="q-effacer" aria-label="Effacer" ${R.q ? "" : "hidden"}>${icone.fermer}</button>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px">
+    <div class="chips" role="group" aria-label="Langues">${Object.keys(LANGUES).map(l => `<button class="chip" data-l="${l}" aria-pressed="${R.langues.includes(l)}">${LANGUES[l]}</button>`).join("")}</div>
+  </div>
+  <p class="aide-recherche">Astuces : <code>4/102</code> pour le numéro imprimé, <code>sv2a</code> ou un mot du nom de série, <code>jp</code> pour les japonaises. Les fautes de frappe sont tolérées.</p>
+  <div class="etat-index" id="etat-index"></div>
+  <div id="resultats"></div>
+  ${ETAT.suivis.length ? `<div id="bloc-suivis"><div class="titre-section"><h2>Cartes suivies</h2><span class="petit">${ETAT.suivis.length}</span></div><div class="galerie">${ETAT.suivis.map(tuileSuivi).join("")}</div></div>` : ""}`;
+  const q = $("#q");
+  let minuteur;
+  q.addEventListener("input", () => { R.q = q.value; R.vus = 48; $("#q-effacer").hidden = !q.value; clearTimeout(minuteur); minuteur = setTimeout(lancerRecherche, 160); });
+  $("#q-effacer").onclick = () => { q.value = ""; R.q = ""; $("#q-effacer").hidden = true; lancerRecherche(); q.focus(); };
+  $$("[data-l]").forEach(b => b.onclick = () => {
+    const l = b.dataset.l; R.langues = R.langues.includes(l) ? R.langues.filter(x => x !== l) : [...R.langues, l];
+    if (!R.langues.length) R.langues = [l];
+    $$("[data-l]").forEach(x => x.setAttribute("aria-pressed", R.langues.includes(x.dataset.l)));
+    lancerRecherche();
+  });
+  $$("[data-suivi]").forEach(b => b.onclick = () => ouvrirFiche(b.dataset.lang, b.dataset.suivi));
+  if (!matchMedia("(pointer:coarse)").matches) q.focus();
+  lancerRecherche();
+}
+async function lancerRecherche() {
+  const R = ETAT.recherche, zone = $("#resultats"), info = $("#etat-index");
+  if (!zone) return;
+  const blocSuivis = $("#bloc-suivis");
+  if (!R.q.trim()) { zone.innerHTML = ""; info.innerHTML = ""; if (blocSuivis) blocSuivis.hidden = false; return; }
+  if (blocSuivis) blocSuivis.hidden = true;
+  const manquantes = R.langues.filter(l => !INDEX[l]);
+  if (manquantes.length) {
+    info.innerHTML = `<span class="chargement"></span> Préparation de l’index des cartes (${manquantes.map(l => LANGUES[l].toLowerCase()).join(", ")})… une seule fois, puis instantané.`;
+    try { await Promise.all(manquantes.map(l => chargerIndex(l))); } catch (e) { info.textContent = "Impossible de charger la liste des cartes. Vérifie ta connexion."; return; }
+    if (R.q !== $("#q")?.value) return;
+  }
+  const { r, res } = rechercher(R.q, R.langues);
+  info.textContent = res.length ? `${res.length >= 400 ? "400+" : res.length} carte${res.length > 1 ? "s" : ""}${r.langue ? " · " + LANGUES[r.langue].toLowerCase() : ""}${r.num != null ? ` · n° ${r.num}${r.denom ? "/" + r.denom : ""}` : ""}` : "";
+  if (!res.length) { zone.innerHTML = `<div class="carte-ui vide">Aucune carte trouvée pour « ${esc(R.q)} ».<br><small>Essaie le nom dans une autre langue (Dracaufeu / Charizard), ou seulement le numéro.${R.langues.includes("ja") || r.langue === "ja" ? "<br>Les cartes japonaises portent leur nom en japonais : cherche-les par numéro, par exemple <code>25/165 jp</code>." : ""}</small></div>`; return; }
+  const possede = new Map();
+  ETAT.cartes.filter(c => c.statut === "possedee").forEach(c => possede.set(c.langue + ":" + c.carte_id, (possede.get(c.langue + ":" + c.carte_id) || 0) + c.quantite));
+  zone.innerHTML = `<div class="galerie">${res.slice(0, R.vus).map(({ c, set }) => {
+    const n = possede.get(c.lang + ":" + c.id);
+    return `<button class="tuile" data-carte="${esc(c.id)}" data-lang="${c.lang}">
+      <span class="img">${c.img ? `<img loading="lazy" alt="" src="${esc(imgCarte(c.img))}" onerror="this.remove()">` : ""}<span class="sans" ${c.img ? 'style="z-index:-1"' : ""}>${esc(c.nom)}</span>
+        <span class="marques"><span class="puce ${c.lang}">${COURT[c.lang]}</span></span>${n ? `<span class="possede">×${n}</span>` : ""}</span>
+      <span class="t-nom">${esc(c.nom)}</span><span class="t-meta">${esc(set?.nom || c.set)} · ${esc(c.local)}${set?.off ? "/" + set.off : ""}</span></button>`;
+  }).join("")}</div>${res.length > R.vus ? `<div style="text-align:center;margin-top:16px"><button class="btn" id="plus">Afficher plus</button></div>` : ""}`;
+  $$("[data-carte]", zone).forEach(b => b.onclick = () => ouvrirFiche(b.dataset.lang, b.dataset.carte));
+  const plus = $("#plus"); if (plus) plus.onclick = () => { R.vus += 48; lancerRecherche(); };
+}
+
+/* ═══════════ Feuille (fenêtre glissante) ═══════════ */
+function feuille(titre, html, surFermer) {
+  fermerFeuille(true);
+  const voile = document.createElement("div"); voile.className = "voile";
+  const f = document.createElement("section"); f.className = "feuille"; f.setAttribute("role", "dialog"); f.setAttribute("aria-modal", "true"); f.setAttribute("aria-label", titre);
+  f.innerHTML = `<div class="poignee"></div><div class="f-tete"><h2>${esc(titre)}</h2><button class="icone-btn" data-fermer aria-label="Fermer">${icone.fermer}</button></div><div class="f-corps">${html}</div>`;
+  document.body.append(voile, f);
+  document.body.style.overflow = "hidden";
+  requestAnimationFrame(() => { voile.classList.add("ok"); f.classList.add("ok"); });
+  const fermer = () => fermerFeuille();
+  voile.onclick = fermer; f.querySelector("[data-fermer]").onclick = fermer;
+  feuille.courante = { voile, f, surFermer };
+  return f;
+}
+function fermerFeuille(immediat) {
+  const c = feuille.courante; if (!c) return;
+  feuille.courante = null; document.body.style.overflow = "";
+  c.surFermer?.();
+  if (immediat) { c.voile.remove(); c.f.remove(); return; }
+  c.voile.classList.remove("ok"); c.f.classList.remove("ok");
+  setTimeout(() => { c.voile.remove(); c.f.remove(); }, 260);
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && feuille.courante) fermerFeuille(); });
+
+/* ═══════════ Fiche d'une carte ═══════════ */
+async function ouvrirFiche(lang, id) {
+  const f = feuille("Fiche de la carte", `<div class="fiche"><div class="grande squelette"></div><div><div class="squelette" style="height:28px;width:60%"></div><div class="squelette" style="height:120px;margin-top:14px"></div></div></div>`);
+  let carte;
+  try { carte = await api(lang, "cards/" + id); }
+  catch (e) { f.querySelector(".f-corps").innerHTML = `<div class="vide">Impossible de charger cette carte pour le moment.</div>`; return; }
+  if (feuille.courante?.f !== f) return;
+  const cm = carte.pricing?.cardmarket || null, tcg = carte.pricing?.tcgplayer || null;
+  const mesExemplaires = ETAT.cartes.filter(c => c.carte_id === carte.id && c.langue === lang);
+  const suivie = ETAT.suivis.some(s => s.carte_id === carte.id && s.langue === lang);
+  const set = carte.set || {};
+  const numero = `${carte.localId}${set.cardCount?.official ? "/" + set.cardCount.official : ""}`;
+  const tcgMarche = tcg ? ["normal", "holofoil", "reverse-holofoil", "1stEditionHolofoil"].map(k => tcg[k]?.marketPrice).find(v => v) : null;
+  const rech = encodeURIComponent(`${carte.name} ${carte.localId}`);
+  const c = v => v == null || v === 0 ? "—" : eur(v);
+  f.querySelector(".f-corps").innerHTML = `
+  <div class="fiche">
+    <div class="grande">${carte.image ? `<img alt="${esc(carte.name)}" src="${esc(imgCarte(carte.image, "high"))}">` : `<div class="vide">Pas d’image</div>`}</div>
+    <div>
+      <h3>${esc(carte.name)}</h3>
+      <div class="sous"><span class="puce ${lang}">${LANGUES[lang]}</span><span>${esc(set.name || "")}</span><span>·</span><span class="chiffre">${esc(numero)}</span>${carte.rarity ? `<span>·</span><span>${esc(carte.rarity)}</span>` : ""}</div>
+      ${cm ? `
+      <div class="cotes">
+        <div class="cote grande-cote"><span>Cote Cardmarket (tendance)</span><b>${c(cm.trend || cm.avg30 || cm.avg)}</b></div>
+        <div class="cote"><span>Moyenne 30 j</span><b>${c(cm.avg30)}</b></div>
+        <div class="cote"><span>Moyenne 7 j</span><b>${c(cm.avg7)}</b></div>
+        <div class="cote"><span>Moyenne 1 j</span><b>${c(cm.avg1)}</b></div>
+        <div class="cote"><span>Prix le plus bas</span><b>${c(cm.low)}</b></div>
+        ${cm["trend-holo"] ? `<div class="cote"><span>Reverse · tendance</span><b>${c(cm["trend-holo"])}</b></div><div class="cote"><span>Reverse · 30 j</span><b>${c(cm["avg30-holo"])}</b></div>` : ""}
+        ${tcgMarche ? `<div class="cote"><span>TCGplayer (US)</span><b>${fmtUsd.format(tcgMarche)}</b></div>` : ""}
+      </div>
+      <p class="source">Cardmarket via TCGdex${cm.updated ? ", mis à jour le " + esc(dateFr(cm.updated.slice(0, 10))) : ""}. La cote mélange états et langues d’une même impression.</p>`
+      : `<div class="carte-ui" style="margin-top:12px">Pas de cote Cardmarket pour cette carte. Tu peux lui donner une valeur à la main en l’ajoutant.</div>`}
+      <div class="titre-section" style="margin-top:16px"><h2 style="font-size:17px">Courbe de prix</h2><span class="petit" id="info-courbe"></span></div>
+      <div class="courbe" id="courbe-carte" style="height:180px"></div>
+      <div class="legende" id="legende-carte"></div>
+      <div class="btns" style="margin-top:16px">
+        <button class="btn principal" id="f-ajouter">${icone.plus} Ajouter à ma collection</button>
+        <button class="btn" id="f-suivre" aria-pressed="${suivie}">${suivie ? icone.etoilePleine + " Suivie" : icone.etoile + " Suivre la cote"}</button>
+      </div>
+      <div class="btns" style="margin-top:8px">
+        <a class="btn discret" target="_blank" rel="noopener" href="https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(carte.name)}">${icone.lien} Cardmarket</a>
+        <a class="btn discret" target="_blank" rel="noopener" href="https://www.ebay.fr/sch/i.html?_nkw=${rech}&LH_Sold=1&LH_Complete=1">${icone.lien} Ventes eBay</a>
+      </div>
+      ${mesExemplaires.length ? `<div class="titre-section"><h2 style="font-size:17px">Mes exemplaires</h2></div><div class="exemplaires liste">${mesExemplaires.map(x => ligneCarte(x, x.statut === "vendue" ? `<b>${eur(x.prix_vente)}</b><small>vendue</small>` : `<b>${eur(x.valeur_unitaire)}</b><small>${x.type === "gradee" ? "valeur saisie" : "estimée"}</small>`)).join("")}</div>` : ""}
+    </div>
+  </div>`;
+  brancherLignes();
+  $("#f-ajouter").onclick = () => formulaireCarte({ carte, lang });
+  $("#f-suivre").onclick = () => basculerSuivi(carte, lang);
+  // Courbe : historique enregistré, sinon points estimés à partir des moyennes du jour
+  let hist = [];
+  try { const { data } = await sb.from("prix").select("*").eq("carte_id", carte.id).eq("langue", lang).order("jour"); hist = data || []; } catch (e) {}
+  if (feuille.courante?.f !== f) return;
+  const jour = d => new Date(d + "T12:00:00");
+  let normale, reverse;
+  if (hist.length) {
+    normale = hist.map(p => ({ x: jour(p.jour), y: p.cm_trend != null ? +p.cm_trend : p.cm_avg30 != null ? +p.cm_avg30 : null, estime: p.source === "moyenne" }));
+    reverse = hist.map(p => ({ x: jour(p.jour), y: p.cm_trend_holo != null ? +p.cm_trend_holo : null, estime: p.source === "moyenne" }));
+    const reels = hist.filter(p => p.source === "releve").length;
+    $("#info-courbe").textContent = `${reels} relevé${reels > 1 ? "s" : ""} depuis le ${dateFr(hist[0].jour)}`;
+  } else if (cm) {
+    const j = n => new Date(Date.now() - n * 864e5);
+    normale = [[15, cm.avg30], [4, cm.avg7], [1, cm.avg1]].filter(x => x[1]).map(([n, v]) => ({ x: j(n), y: v, estime: true })).concat(cm.trend ? [{ x: j(0), y: cm.trend }] : []);
+    reverse = [[15, cm["avg30-holo"]], [4, cm["avg7-holo"]], [1, cm["avg1-holo"]]].filter(x => x[1]).map(([n, v]) => ({ x: j(n), y: v, estime: true })).concat(cm["trend-holo"] ? [{ x: j(0), y: cm["trend-holo"] }] : []);
+    $("#info-courbe").textContent = "Suis la carte pour un relevé chaque jour";
+  }
+  const css = getComputedStyle(document.documentElement);
+  const series = [{ nom: "Cote", couleur: css.getPropertyValue("--accent").trim(), points: normale || [], aire: true }];
+  if (reverse?.some(p => p.y)) series.push({ nom: "Reverse", couleur: css.getPropertyValue("--ja").trim(), points: reverse });
+  courbe($("#courbe-carte"), series, { id: "c", label: "Cote de la carte", vide: "Pas de cote disponible." });
+  $("#legende-carte").innerHTML = series.map(s => `<span><i style="background:${s.couleur}"></i>${s.nom}</span>`).join("") + `<span><i class="pointille" style="color:var(--doux)"></i>estimé (moyennes Cardmarket)</span>`;
+}
+async function basculerSuivi(carte, lang) {
+  const existe = ETAT.suivis.find(s => s.carte_id === carte.id && s.langue === lang);
+  const b = $("#f-suivre"); if (b) b.disabled = true;
+  try {
+    if (existe) {
+      const { error } = await sb.from("suivis").delete().eq("carte_id", carte.id).eq("langue", lang); if (error) throw error;
+      ETAT.suivis = ETAT.suivis.filter(s => s !== existe); toast("Carte retirée du suivi");
+    } else {
+      const ligne = { carte_id: carte.id, langue: lang, nom: carte.name, image: carte.image || null, set_nom: carte.set?.name || null, numero: carte.localId + (carte.set?.cardCount?.official ? "/" + carte.set.cardCount.official : "") };
+      const { data, error } = await sb.from("suivis").insert(ligne).select().single(); if (error) throw error;
+      ETAT.suivis.unshift(data);
+      sb.rpc("rafraichir_prix", { p_carte: carte.id, p_langue: lang }).then(() => {});
+      toast("Cote suivie : relevée chaque nuit");
+    }
+    if (b) { const s = !existe; b.setAttribute("aria-pressed", s); b.innerHTML = s ? icone.etoilePleine + " Suivie" : icone.etoile + " Suivre la cote"; }
+  } catch (e) { erreur(e, "Suivi"); }
+  if (b) b.disabled = false;
+}
+
+/* ═══════════ Formulaire : ajouter / modifier / vendre ═══════════
+   { carte, lang } nouvelle carte depuis TCGdex ; { ligne } modification ; { carte, lang, scan } depuis le scanner */
+function formulaireCarte({ carte, lang, ligne, scan }) {
+  const nouv = !ligne;
+  const v = carte?.variants || {};
+  const varDefaut = v.normal ? "normal" : v.holo ? "holo" : v.reverse ? "reverse" : v.firstEdition ? "premiere-edition" : "normal";
+  const L = ligne || {
+    carte_id: carte.id, langue: lang, nom: carte.name, set_id: carte.set?.id, set_nom: carte.set?.name,
+    numero: carte.localId + (carte.set?.cardCount?.official ? "/" + carte.set.cardCount.official : ""), total_set: carte.set?.cardCount?.official ?? null,
+    image: carte.image || null, rarete: carte.rarity || null, variante: varDefaut, type: "brut", etat: scan?.etat || "NM", quantite: 1,
+    date_achat: aujourdhui(), centrage: scan?.centrage || null, controle: scan?.controle || null, note_estimee: scan?.note_estimee || null
+  };
+  const vendue = L.statut === "vendue";
+  const variantesDispo = carte ? Object.entries({ normal: v.normal, reverse: v.reverse, holo: v.holo, "premiere-edition": v.firstEdition }).filter(([, ok]) => ok).map(([k]) => k) : [];
+  const listeVar = [...new Set([L.variante, ...variantesDispo, ...Object.keys(VARIANTES)])];
+  const f = feuille(nouv ? "Ajouter à ma collection" : vendue ? "Carte vendue" : "Modifier", `
+  <form id="f-carte" class="grille" novalidate>
+    <div style="display:flex;gap:12px;align-items:center">
+      <span class="vignette" style="width:64px">${L.image ? `<img alt="" src="${esc(imgCarte(L.image))}">` : ""}</span>
+      <div style="min-width:0"><b style="font-size:18px;font-family:var(--f-titre)">${esc(L.nom)}</b><div class="sous" style="color:var(--doux);font-size:14px"><span class="puce ${L.langue}">${LANGUES[L.langue]}</span> ${esc(L.set_nom || "")} · ${esc(L.numero || "")}</div>
+      ${L.note_estimee ? `<div class="source" style="margin-top:4px">Scan : ${esc(L.note_estimee)}</div>` : ""}</div>
+    </div>
+    <div class="segment" role="group" aria-label="Type"><button type="button" data-type="brut" aria-pressed="${L.type === "brut"}">Brute</button><button type="button" data-type="gradee" aria-pressed="${L.type === "gradee"}">Gradée</button></div>
+    <div class="champs">
+      <label class="champ"><span>Variante</span><select name="variante">${listeVar.map(k => `<option value="${k}" ${k === L.variante ? "selected" : ""}>${VARIANTES[k]}</option>`).join("")}</select></label>
+      <label class="champ"><span>Quantité</span><input name="quantite" type="number" inputmode="numeric" min="1" step="1" value="${L.quantite}"></label>
+      <label class="champ" data-brut><span>État</span><select name="etat">${Object.keys(ETATS).map(k => `<option value="${k}" ${k === (L.etat || "NM") ? "selected" : ""}>${k} · ${ETATS_FR[k]}</option>`).join("")}</select></label>
+      <label class="champ" data-brut><span>Valeur à la main (facultatif)</span><input name="valeur_manuelle_b" inputmode="decimal" placeholder="sinon cote × état" value="${L.type === "brut" && L.valeur_manuelle != null ? L.valeur_manuelle : ""}"></label>
+      <label class="champ" data-gradee><span>Société</span><select name="gradeur">${GRADEURS.map(g => `<option ${g === (L.gradeur || "PSA") ? "selected" : ""}>${g}</option>`).join("")}</select></label>
+      <label class="champ" data-gradee><span>Note</span><input name="note" inputmode="decimal" placeholder="10, 9.5…" value="${L.note ?? ""}"></label>
+      <label class="champ" data-gradee><span>N° de certificat</span><input name="certificat" value="${esc(L.certificat || "")}"></label>
+      <label class="champ" data-gradee><span>Valeur estimée (€ / unité)</span><input name="valeur_manuelle_g" inputmode="decimal" placeholder="obligatoire" value="${L.type === "gradee" && L.valeur_manuelle != null ? L.valeur_manuelle : ""}"></label>
+      <p class="source large" data-gradee style="margin:-4px 0 0">Aide : <a target="_blank" rel="noopener" id="lien-ebay-grade" href="#">ventes réelles sur eBay pour cette note</a>.</p>
+      <label class="champ"><span>Prix d’achat (€ / unité)</span><input name="prix_achat" inputmode="decimal" value="${L.prix_achat ?? ""}"></label>
+      <label class="champ"><span>Date d’achat</span><input name="date_achat" type="date" value="${L.date_achat || ""}"></label>
+      <label class="champ large"><span>Acheté où (facultatif)</span><input name="lieu_achat" value="${esc(L.lieu_achat || "")}" placeholder="Booster, Cardmarket, échange…"></label>
+      ${vendue ? `
+      <label class="champ"><span>Prix de vente (€ / unité)</span><input name="prix_vente" inputmode="decimal" value="${L.prix_vente ?? ""}"></label>
+      <label class="champ"><span>Frais (total)</span><input name="frais_vente" inputmode="decimal" value="${L.frais_vente ?? ""}"></label>
+      <label class="champ"><span>Date de vente</span><input name="date_vente" type="date" value="${L.date_vente || ""}"></label>
+      <label class="champ"><span>Vendue sur</span><select name="plateforme_vente">${PLATEFORMES.map(p => `<option ${p === L.plateforme_vente ? "selected" : ""}>${p}</option>`).join("")}</select></label>` : ""}
+      <label class="champ large"><span>Notes</span><textarea name="notes">${esc(L.notes || "")}</textarea></label>
+    </div>
+    ${L.centrage ? `<div class="source">Centrage mesuré : recto ${esc(L.centrage.recto?.lr || "—")} (G/D), ${esc(L.centrage.recto?.hb || "—")} (H/B)${L.centrage.verso ? `, verso ${esc(L.centrage.verso.lr)} / ${esc(L.centrage.verso.hb)}` : ""}.</div>` : ""}
+    <div class="btns">
+      <button class="btn principal" type="submit" style="flex:1">${nouv ? "Ajouter" : "Enregistrer"}</button>
+      ${!nouv && !vendue ? `<button class="btn bleu" type="button" id="b-vendre">${icone.euro} Vendre</button>` : ""}
+      ${!nouv && vendue ? `<button class="btn" type="button" id="b-remettre">Remettre en collection</button>` : ""}
+    </div>
+    ${!nouv ? `<div class="btns"><button class="btn discret" type="button" id="b-fiche">Voir la fiche et la courbe</button><button class="btn discret danger" type="button" id="b-suppr">Supprimer</button></div>` : ""}
+  </form>`);
+  const form = $("#f-carte", f);
+  let type = L.type;
+  const majType = () => {
+    $$("[data-type]", form).forEach(b => b.setAttribute("aria-pressed", b.dataset.type === type));
+    $$("[data-brut]", form).forEach(e => e.hidden = type !== "brut");
+    $$("[data-gradee]", form).forEach(e => e.hidden = type !== "gradee");
+    const lien = $("#lien-ebay-grade", form);
+    if (lien) lien.href = `https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`${L.nom} ${L.numero || ""} ${form.gradeur.value} ${form.note.value || ""}`)}&LH_Sold=1&LH_Complete=1`;
+  };
+  $$("[data-type]", form).forEach(b => b.onclick = () => { type = b.dataset.type; majType(); });
+  form.gradeur.onchange = majType; form.note.oninput = majType;
+  majType();
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const val = {
+      carte_id: L.carte_id, langue: L.langue, nom: L.nom, set_id: L.set_id, set_nom: L.set_nom, numero: L.numero, total_set: L.total_set, image: L.image, rarete: L.rarete,
+      variante: form.variante.value, type, quantite: Math.max(1, parseInt(form.quantite.value, 10) || 1),
+      etat: type === "brut" ? form.etat.value : null,
+      gradeur: type === "gradee" ? form.gradeur.value : null, note: type === "gradee" ? num(form.note.value) : null, certificat: type === "gradee" ? form.certificat.value.trim() || null : null,
+      valeur_manuelle: type === "gradee" ? num(form.valeur_manuelle_g.value) : num(form.valeur_manuelle_b.value),
+      prix_achat: num(form.prix_achat.value), date_achat: form.date_achat.value || null, lieu_achat: form.lieu_achat.value.trim() || null,
+      notes: form.notes.value.trim() || null, centrage: L.centrage || null, controle: L.controle || null, note_estimee: L.note_estimee || null
+    };
+    if (vendue) Object.assign(val, { prix_vente: num(form.prix_vente.value), frais_vente: num(form.frais_vente.value), date_vente: form.date_vente.value || null, plateforme_vente: form.plateforme_vente.value });
+    if (type === "gradee" && val.valeur_manuelle == null) return toast("Indique la valeur estimée de la carte gradée.");
+    if (type === "gradee" && (val.note == null || val.note < 1 || val.note > 10)) return toast("La note doit être entre 1 et 10.");
+    const b = form.querySelector("[type=submit]"); b.disabled = true; b.innerHTML = '<span class="chargement"></span>';
+    try {
+      const { error } = nouv ? await sb.from("cartes").insert(val) : await sb.from("cartes").update(val).eq("id", L.id);
+      if (error) throw error;
+      if (nouv) { try { await sb.rpc("rafraichir_prix", { p_carte: L.carte_id, p_langue: L.langue }); } catch (e2) {} }
+      await sb.rpc("calculer_mes_valeurs");
+      await chargerDonnees();
+      fermerFeuille(); toast(nouv ? "Ajoutée à ta collection" : "Enregistré");
+      if (nouv && ETAT.vue === "scan") location.hash = "#collection"; else rendre();
+    } catch (err) { erreur(err, "Enregistrement"); b.disabled = false; b.textContent = nouv ? "Ajouter" : "Enregistrer"; }
+  });
+  const bv = $("#b-vendre", f); if (bv) bv.onclick = () => formulaireVente(ligne);
+  const br = $("#b-remettre", f); if (br) br.onclick = async () => {
+    const { error } = await sb.from("cartes").update({ statut: "possedee", prix_vente: null, frais_vente: null, date_vente: null, plateforme_vente: null }).eq("id", L.id);
+    if (error) return erreur(error, "Mise à jour");
+    await sb.rpc("calculer_mes_valeurs"); await chargerDonnees(); fermerFeuille(); toast("Remise en collection"); rendre();
+  };
+  const bf = $("#b-fiche", f); if (bf) bf.onclick = () => ouvrirFiche(L.langue, L.carte_id);
+  const bs = $("#b-suppr", f); if (bs) bs.onclick = async () => {
+    if (!confirm(`Supprimer « ${L.nom} » (${L.quantite} ex.) ? Cette action est définitive.`)) return;
+    const { error } = await sb.from("cartes").delete().eq("id", L.id);
+    if (error) return erreur(error, "Suppression");
+    await sb.rpc("calculer_mes_valeurs"); await chargerDonnees(); fermerFeuille(); toast("Supprimée"); rendre();
+  };
+}
+function formulaireVente(L) {
+  const f = feuille("Vendre", `
+  <form id="f-vente" class="grille">
+    <div style="display:flex;gap:12px;align-items:center"><span class="vignette" style="width:56px">${L.image ? `<img alt="" src="${esc(imgCarte(L.image))}">` : ""}</span>
+      <div><b style="font-family:var(--f-titre);font-size:18px">${esc(L.nom)}</b><div class="source" style="margin:2px 0 0">Valeur actuelle : ${eur(L.valeur_unitaire)} / unité · achetée ${eur(L.prix_achat)}</div></div></div>
+    <div class="champs">
+      <label class="champ"><span>Quantité vendue</span><input name="q" type="number" inputmode="numeric" min="1" max="${L.quantite}" value="${L.quantite}"></label>
+      <label class="champ"><span>Prix de vente (€ / unité)</span><input name="prix" inputmode="decimal" required value="${L.valeur_unitaire ?? ""}"></label>
+      <label class="champ"><span>Frais (port, commission… total)</span><input name="frais" inputmode="decimal" value=""></label>
+      <label class="champ"><span>Date</span><input name="date" type="date" value="${aujourdhui()}"></label>
+      <label class="champ large"><span>Vendue sur</span><select name="plateforme">${PLATEFORMES.map(p => `<option>${p}</option>`).join("")}</select></label>
+    </div>
+    <div class="carte-ui" id="bilan-vente" style="padding:12px 14px"></div>
+    <button class="btn bleu plein" type="submit">${icone.euro} Enregistrer la vente</button>
+  </form>`);
+  const form = $("#f-vente", f);
+  const bilan = () => {
+    const q = Math.min(L.quantite, Math.max(1, parseInt(form.q.value, 10) || 1)), p = num(form.prix.value) ?? 0, fr = num(form.frais.value) ?? 0;
+    const ben = p * q - fr - (L.prix_achat ?? 0) * q;
+    $("#bilan-vente", f).innerHTML = `Encaissé <b class="chiffre">${eur(p * q - fr)}</b> · bénéfice <b class="chiffre ${signe(ben)}">${eur(ben)}</b>${L.prix_achat == null ? " <small>(prix d’achat inconnu, compté 0 €)</small>" : ""}`;
+  };
+  form.oninput = bilan; bilan();
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const q = Math.min(L.quantite, Math.max(1, parseInt(form.q.value, 10) || 1)), prix = num(form.prix.value);
+    if (prix == null) return toast("Indique le prix de vente.");
+    const vente = { statut: "vendue", prix_vente: prix, frais_vente: num(form.frais.value), date_vente: form.date.value || aujourdhui(), plateforme_vente: form.plateforme.value };
+    try {
+      if (q >= L.quantite) {
+        const { error } = await sb.from("cartes").update(vente).eq("id", L.id); if (error) throw error;
+      } else {
+        // Vente partielle : le lot garde le reste, une nouvelle ligne porte les cartes vendues
+        const copie = { ...L }; ["id", "user_id", "cree_le", "maj_le", "cote_jour", "cote_maj", "cote", "coef_etat", "valeur_unitaire"].forEach(k => delete copie[k]);
+        const { error: e1 } = await sb.from("cartes").insert({ ...copie, ...vente, quantite: q }); if (e1) throw e1;
+        const { error: e2 } = await sb.from("cartes").update({ quantite: L.quantite - q }).eq("id", L.id); if (e2) throw e2;
+      }
+      await sb.rpc("calculer_mes_valeurs"); await chargerDonnees();
+      fermerFeuille(); toast("Vente enregistrée"); rendre();
+    } catch (err) { erreur(err, "Vente"); }
+  });
+}
+
+/* ═══════════ Vue : Collection ═══════════ */
+function vueCollection() {
+  const F = ETAT.filtres, t = totaux();
+  $("#vue").innerHTML = `
+  <div class="titre-section" style="margin-top:4px"><h2>Ma collection</h2><span class="petit"><b class="chiffre" style="color:var(--encre)">${eur(t.total, true)}</b> · ${t.nb} carte${t.nb > 1 ? "s" : ""}</span></div>
+  <div class="recherche" style="margin-bottom:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cq" type="search" placeholder="Filtrer ma collection" value="${esc(F.q)}" style="padding-right:16px"></div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
+    <div class="chips">${[["tous", "Toutes"], ["brut", "Brutes"], ["gradee", "Gradées"]].map(([k, n]) => `<button class="chip" data-ft="${k}" aria-pressed="${F.type === k}">${n}</button>`).join("")}
+      ${[["toutes", "Toutes langues"], ...Object.entries(COURT)].map(([k, n]) => `<button class="chip" data-fl="${k}" aria-pressed="${F.langue === k}">${n}</button>`).join("")}</div>
+    <label class="champ" style="flex-direction:row;align-items:center;gap:8px"><span>Trier</span><select id="tri" style="min-height:38px;padding:6px 10px;width:auto">${[["valeur", "Valeur"], ["recent", "Ajout récent"], ["nom", "Nom"], ["plusvalue", "Plus-value"], ["set", "Série"]].map(([k, n]) => `<option value="${k}" ${F.tri === k ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+  </div>
+  <div class="liste" id="liste-col" style="margin-top:12px"></div>`;
+  const dessiner = () => {
+    let l = ETAT.cartes.filter(c => c.statut === "possedee");
+    if (F.type !== "tous") l = l.filter(c => c.type === F.type);
+    if (F.langue !== "toutes") l = l.filter(c => c.langue === F.langue);
+    if (F.q.trim()) { const q = norm(F.q); l = l.filter(c => norm(`${c.nom} ${c.set_nom} ${c.numero} ${c.gradeur || ""} ${c.notes || ""}`).includes(q)); }
+    const val = c => (c.valeur_unitaire ?? 0) * c.quantite, pv = c => val(c) - (c.prix_achat ?? 0) * c.quantite;
+    const tris = { valeur: (a, b) => val(b) - val(a), recent: (a, b) => b.cree_le.localeCompare(a.cree_le), nom: (a, b) => a.nom.localeCompare(b.nom, "fr"), plusvalue: (a, b) => pv(b) - pv(a), set: (a, b) => (a.set_nom || "").localeCompare(b.set_nom || "", "fr") || (parseInt(a.numero) || 0) - (parseInt(b.numero) || 0) };
+    l.sort(tris[F.tri]);
+    $("#liste-col").innerHTML = l.length ? l.map(c => {
+      const p = c.prix_achat != null ? pv(c) : null;
+      return ligneCarte(c, `<b>${c.valeur_unitaire != null ? eur(val(c)) : "—"}</b><small class="${p != null ? signe(p) : ""}">${p != null ? (p >= 0 ? "+" : "") + eur(p) : c.type === "gradee" ? "valeur saisie" : c.cote != null ? "cote " + eur(c.cote) : "sans cote"}</small>`);
+    }).join("") : `<div class="carte-ui vide">${icone.cartes}<div>${ETAT.cartes.some(c => c.statut === "possedee") ? "Aucune carte ne correspond à ces filtres." : "Aucune carte pour l’instant."}</div><div class="btns" style="justify-content:center;margin-top:12px"><a class="btn principal" href="#scan">Scanner une carte</a><a class="btn" href="#recherche">Chercher</a></div></div>`;
+    brancherLignes();
+  };
+  $("#cq").oninput = e => { F.q = e.target.value; dessiner(); };
+  $$("[data-ft]").forEach(b => b.onclick = () => { F.type = b.dataset.ft; $$("[data-ft]").forEach(x => x.setAttribute("aria-pressed", x === b)); dessiner(); });
+  $$("[data-fl]").forEach(b => b.onclick = () => { F.langue = b.dataset.fl; $$("[data-fl]").forEach(x => x.setAttribute("aria-pressed", x === b)); dessiner(); });
+  $("#tri").onchange = e => { F.tri = e.target.value; dessiner(); };
+  dessiner();
+}
+
+/* ═══════════ Vue : Ventes ═══════════ */
+function vueVentes() {
+  const t = totaux();
+  const v = ETAT.cartes.filter(c => c.statut === "vendue").sort((a, b) => (b.date_vente || "").localeCompare(a.date_vente || ""));
+  const parMois = {};
+  v.forEach(c => { const m = (c.date_vente || "").slice(0, 7) || "?"; (parMois[m] ||= []).push(c); });
+  $("#vue").innerHTML = `
+  <div class="titre-section" style="margin-top:4px"><h2>Mes ventes</h2><span class="petit">${t.nbVendu} carte${t.nbVendu > 1 ? "s" : ""}</span></div>
+  <div class="carte-ui"><div class="kpis" style="margin-top:0">
+    <div class="kpi"><span>Chiffre de ventes</span><b>${eur(t.ventes, true)}</b></div>
+    <div class="kpi"><span>Frais</span><b>${eur(t.frais, true)}</b></div>
+    <div class="kpi"><span>Prix d’achat</span><b>${eur(t.achatVendu, true)}</b></div>
+    <div class="kpi"><span>Bénéfice net</span><b class="${signe(t.benefice)}">${eur(t.benefice, true)}</b></div>
+  </div></div>
+  ${v.length ? Object.entries(parMois).map(([m, l]) => {
+    const tot = l.reduce((s, c) => s + (c.prix_vente ?? 0) * c.quantite - (c.frais_vente ?? 0), 0);
+    const nomMois = m === "?" ? "Date inconnue" : new Date(m + "-15").toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    return `<div class="titre-section"><h2 style="font-size:17px;text-transform:capitalize">${esc(nomMois)}</h2><span class="petit chiffre">${eur(tot)}</span></div><div class="liste">${l.map(c => {
+      const ben = (c.prix_vente ?? 0) * c.quantite - (c.frais_vente ?? 0) - (c.prix_achat ?? 0) * c.quantite;
+      return ligneCarte(c, `<b>${eur((c.prix_vente ?? 0) * c.quantite)}</b><small class="${signe(ben)}">${ben >= 0 ? "+" : ""}${eur(ben)} · ${esc(c.plateforme_vente || "")}</small>`);
+    }).join("")}</div>`;
+  }).join("") : `<div class="carte-ui vide" style="margin-top:14px">${icone.euro}<div>Aucune vente enregistrée.<br><small>Ouvre une carte de ta collection puis « Vendre ».</small></div></div>`}`;
+  brancherLignes();
+}
+
+/* ═══════════ Vue : Réglages ═══════════ */
+function vueReglages() {
+  const co = { ...COEFS_DEFAUT, ...(ETAT.reglages.coefs || {}) };
+  $("#vue").innerHTML = `
+  <div class="titre-section" style="margin-top:4px"><h2>Réglages</h2></div>
+  <div class="grille deux">
+    <form class="carte-ui grille" id="f-coefs">
+      <div><h2 style="font-size:18px">Valeur des cartes brutes selon l’état</h2><p class="source">La cote Cardmarket correspond surtout à des cartes en bon état. Pourcentage de la cote retenu pour chaque état :</p></div>
+      <div class="champs">${Object.keys(ETATS).map(k => `<label class="champ"><span>${k} · ${ETATS_FR[k]}</span><input name="${k}" inputmode="numeric" value="${Math.round(co[k] * 100)}" aria-label="${k} en pourcentage"></label>`).join("")}</div>
+      <button class="btn principal" type="submit">Enregistrer</button>
+    </form>
+    <div class="grille">
+      <div class="carte-ui grille">
+        <h2 style="font-size:18px">Sauvegarde</h2>
+        <p class="source" style="margin:0">Exporte ta collection et tes ventes avant toute grosse manipulation.</p>
+        <div class="btns"><button class="btn" id="b-json">Exporter (JSON)</button><button class="btn" id="b-csv">Exporter (tableur CSV)</button></div>
+      </div>
+      <div class="carte-ui grille">
+        <h2 style="font-size:18px">Compte</h2>
+        <p class="source" style="margin:0">Connecté : <b>${esc(ETAT.session?.user?.email || "")}</b></p>
+        <button class="btn danger" id="b-deco">Se déconnecter</button>
+      </div>
+      <div class="carte-ui">
+        <h2 style="font-size:18px">Sources</h2>
+        <p class="source">Données des cartes et cotes : <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a> (cotes Cardmarket en euros, TCGplayer en dollars), relevées chaque nuit vers 4 h 30. Cartes gradées : la valeur que tu saisis. Le centrage et la note estimée du scanner sont indicatifs et ne remplacent pas une gradation officielle.</p>
+      </div>
+    </div>
+  </div>`;
+  $("#f-coefs").onsubmit = async e => {
+    e.preventDefault();
+    const coefs = {}; for (const k of Object.keys(ETATS)) { const v = num(e.target[k].value); if (v == null || v < 0 || v > 200) return toast(`Valeur invalide pour ${k}`); coefs[k] = Math.round(v) / 100; }
+    const { error } = await sb.from("reglages").upsert({ coefs }); if (error) return erreur(error, "Réglages");
+    await sb.rpc("calculer_mes_valeurs"); await chargerDonnees(); toast("Coefficients enregistrés");
+  };
+  $("#b-json").onclick = () => telecharger(`holo-cote-${aujourdhui()}.json`, JSON.stringify({ exporte_le: new Date().toISOString(), cartes: ETAT.cartes, suivis: ETAT.suivis, reglages: ETAT.reglages }, null, 2), "application/json");
+  $("#b-csv").onclick = () => {
+    const cols = ["statut", "nom", "langue", "set_nom", "numero", "variante", "type", "etat", "gradeur", "note", "certificat", "quantite", "valeur_unitaire", "cote", "prix_achat", "date_achat", "prix_vente", "frais_vente", "date_vente", "plateforme_vente", "notes"];
+    const cell = v => v == null ? "" : /[;"\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v).replace(".", typeof v === "number" ? "," : ".");
+    telecharger(`holo-cote-${aujourdhui()}.csv`, "﻿" + [cols.join(";"), ...ETAT.cartes.map(c => cols.map(k => cell(c[k])).join(";"))].join("\n"), "text/csv");
+  };
+  $("#b-deco").onclick = async () => { await sb.auth.signOut(); location.hash = "#recap"; };
+}
+function telecharger(nom, contenu, type) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([contenu], { type })); a.download = nom; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SCANNER : reconnaissance par le numéro imprimé + mesure du centrage
+   ═══════════════════════════════════════════════════════════════════════ */
+const BAREME_PSA = [[10, 55, 75], [9, 60, 90], [8, 65, 90], [7, 70, 90], [6, 80, 90], [5, 85, 90], [4, 85, 90], [3, 90, 90]];
+const NIVEAUX = [["Impeccable", 10], ["À peine visible", 9], ["Léger", 8], ["Visible", 6], ["Marqué", 4], ["Abîmé", 2]];
+const CRITERES = [["coins", "Coins", "blanchiment, pointes émoussées"], ["bords", "Bords", "éclats, blanchiment sur la tranche"], ["surface", "Surface", "rayures, traces, plis, impression"]];
+const Scan = {
+  flux: null, etape: "camera", face: "recto", photos: {}, mesures: {}, controle: {}, carte: null, lampe: false,
+  arreter() { if (this.flux) { this.flux.getTracks().forEach(t => t.stop()); this.flux = null; } }
+};
+
+function vueScan() {
+  const S = Scan;
+  const etapes = [["camera", "1. Photo"], ["centrage", "2. Centrage"], ["controle", "3. État"], ["carte", "4. Carte"]];
+  const entete = `<div class="etapes">${etapes.map(([k, n]) => `<span class="${S.etape === k ? "ici" : ""}">${n}</span>`).join("")}</div>`;
+  if (S.etape === "camera") return scanCamera(entete);
+  if (S.etape === "centrage") return scanCentrage(entete);
+  if (S.etape === "controle") return scanControle(entete);
+  if (S.etape === "carte") return scanCarte(entete);
+}
+function recommencerScan() { Object.assign(Scan, { etape: "camera", face: "recto", photos: {}, mesures: {}, controle: {}, carte: null }); vueScan(); }
+
+/* Étape 1 : caméra en direct avec cadre, ou photo de la galerie */
+async function scanCamera(entete) {
+  const S = Scan;
+  $("#vue").innerHTML = `${entete}
+  <div class="titre-section" style="margin-top:0"><h2>${S.face === "recto" ? "Photographie le recto" : "Photographie le verso"}</h2>${S.face === "verso" ? `<button class="btn discret" id="b-sauter">Passer le verso</button>` : ""}</div>
+  <div class="scan-zone" id="zone"><video id="video" playsinline muted autoplay></video><div class="guide" id="guide"></div>
+    <div class="ctl"><label class="icone-btn" title="Choisir une photo" aria-label="Choisir une photo">${icone.image}<input type="file" accept="image/*" id="fichier" hidden></label><button class="obturateur" id="declencher" aria-label="Prendre la photo"></button><button class="icone-btn" id="b-lampe" title="Lampe" aria-label="Allumer la lampe" hidden>${icone.lampe}</button></div></div>
+  <p class="source" style="text-align:center">Carte à plat sur un fond sombre et uni, sans reflet, le téléphone bien parallèle. Sortie de sa pochette si possible.</p>
+  <div id="cam-erreur"></div>`;
+  $("#fichier").onchange = e => { const fi = e.target.files[0]; if (fi) chargerPhoto(fi); };
+  const sauter = $("#b-sauter"); if (sauter) sauter.onclick = () => { S.arreter(); S.etape = "controle"; vueScan(); };
+  try {
+    S.arreter();
+    S.flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+    if (ETAT.vue !== "scan") return S.arreter();
+    const v = $("#video"); v.srcObject = S.flux; await v.play().catch(() => {});
+    const piste = S.flux.getVideoTracks()[0], cap = piste.getCapabilities?.() || {};
+    if (cap.focusMode?.includes?.("continuous")) piste.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+    if (cap.torch) { const b = $("#b-lampe"); b.hidden = false; b.onclick = () => { S.lampe = !S.lampe; piste.applyConstraints({ advanced: [{ torch: S.lampe }] }).catch(() => {}); b.style.color = S.lampe ? "var(--or)" : ""; }; }
+    $("#declencher").onclick = () => {
+      const v = $("#video"), zone = $("#zone").getBoundingClientRect(), g = $("#guide").getBoundingClientRect();
+      // Correspondance entre l'affichage (object-fit: cover) et l'image réelle de la caméra
+      const vw = v.videoWidth, vh = v.videoHeight, ech = Math.max(zone.width / vw, zone.height / vh);
+      const ox = (zone.width - vw * ech) / 2, oy = (zone.height - vh * ech) / 2, marge = 0.07;
+      let x = (g.left - zone.left - ox) / ech, y = (g.top - zone.top - oy) / ech, w = g.width / ech, h = g.height / ech;
+      x -= w * marge; y -= h * marge; w *= 1 + 2 * marge; h *= 1 + 2 * marge;
+      x = Math.max(0, x); y = Math.max(0, y); w = Math.min(vw - x, w); h = Math.min(vh - y, h);
+      const c = document.createElement("canvas"); const ech2 = Math.min(1, 1400 / h);
+      c.width = Math.round(w * ech2); c.height = Math.round(h * ech2);
+      c.getContext("2d").drawImage(v, x, y, w, h, 0, 0, c.width, c.height);
+      S.arreter();
+      enregistrerPhoto(c, true);
+    };
+  } catch (e) {
+    $("#zone").innerHTML = `<div class="vide" style="color:#fff;padding:60px 20px">Caméra indisponible (${esc(e.name === "NotAllowedError" ? "autorisation refusée" : e.message || e.name)}).<br><br><label class="btn principal">${icone.image} Choisir une photo<input type="file" accept="image/*" capture="environment" hidden id="fichier2"></label></div>`;
+    $("#fichier2").onchange = ev => { const fi = ev.target.files[0]; if (fi) chargerPhoto(fi); };
+  }
+}
+function chargerPhoto(fichier) {
+  const img = new Image();
+  img.onload = () => {
+    const ech = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const c = document.createElement("canvas"); c.width = Math.round(img.width * ech); c.height = Math.round(img.height * ech);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(img.src);
+    Scan.arreter(); enregistrerPhoto(c, false);
+  };
+  img.onerror = () => toast("Image illisible.");
+  img.src = URL.createObjectURL(fichier);
+}
+function enregistrerPhoto(canvas, cadree) {
+  const S = Scan;
+  S.photos[S.face] = canvas;
+  S.mesures[S.face] = detecterBords(canvas, cadree);
+  S.etape = "centrage"; vueScan();
+}
+
+/* Détection des bords : profils de gradient sur les lignes et colonnes centrales.
+   Extérieur = bord de la carte ; intérieur = fin de la bordure (cadre de l'illustration ou du texte). */
+function detecterBords(canvas, cadree) {
+  const W = canvas.width, H = canvas.height, d = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+  // Écart de couleur (R+V+B) plutôt que de luminosité : une bordure jaune et un fond gris clair ont presque la même luminosité.
+  const ecart = (a, b) => Math.abs(d[a] - d[b]) + Math.abs(d[a + 1] - d[b + 1]) + Math.abs(d[a + 2] - d[b + 2]);
+  const profilX = (y0, y1) => { const r = new Float32Array(W); for (let y = y0; y < y1; y += 2) { const o = y * W; for (let x = 1; x < W - 1; x++) r[x] += ecart((o + x + 1) * 4, (o + x - 1) * 4); } return lisser(r); };
+  const profilY = (x0, x1) => { const r = new Float32Array(H); for (let y = 1; y < H - 1; y++) { const o = y * W; let s = 0; for (let x = x0; x < x1; x += 2) s += ecart((o + W + x) * 4, (o - W + x) * 4); r[y] = s; } return lisser(r); };
+  const lisser = r => { const s = new Float32Array(r.length); for (let i = 2; i < r.length - 2; i++) s[i] = (r[i - 2] + 2 * r[i - 1] + 3 * r[i] + 2 * r[i + 1] + r[i + 2]) / 9; return s; };
+  const pic = (r, a, b) => { a = Math.max(2, Math.round(a)); b = Math.min(r.length - 3, Math.round(b)); let m = a; for (let i = a; i <= b; i++) if (r[i] > r[m]) m = i; return m; };
+  // Première transition nette en partant du bord de la carte (la fin de la bordure vient avant le cadre de l'illustration)
+  const premierPic = (r, depart, arrivee) => {
+    const a = Math.round(Math.min(depart, arrivee)), b = Math.round(Math.max(depart, arrivee));
+    const m = r[pic(r, a, b)], seuil = m * .42, pas = arrivee > depart ? 1 : -1;
+    for (let i = Math.round(depart); pas > 0 ? i <= arrivee : i >= arrivee; i += pas) {
+      if (r[i] >= seuil) { let j = i; while (r[j + pas] >= r[j]) j += pas; return j; }
+    }
+    return pic(r, a, b);
+  };
+  // 1. Bords extérieurs : dans les zones où la carte doit se trouver
+  const zx = cadree ? 0.2 : 0.42, zy = cadree ? 0.18 : 0.42;
+  let px = profilX(Math.round(H * .3), Math.round(H * .7)), py = profilY(Math.round(W * .3), Math.round(W * .7));
+  const ext = { g: pic(px, 0, W * zx), d: pic(px, W * (1 - zx), W - 1), h: pic(py, 0, H * zy), b: pic(py, H * (1 - zy), H - 1) };
+  // 2. Bordure intérieure : entre 2 % et 13 % de la carte, profils recalculés à l'intérieur de la carte
+  const cw = ext.d - ext.g, ch = ext.b - ext.h;
+  px = profilX(Math.round(ext.h + ch * .28), Math.round(ext.b - ch * .28));
+  py = profilY(Math.round(ext.g + cw * .25), Math.round(ext.d - cw * .25));
+  const int = {
+    g: premierPic(px, ext.g + cw * .02, ext.g + cw * .13), d: premierPic(px, ext.d - cw * .02, ext.d - cw * .13),
+    h: premierPic(py, ext.h + ch * .02, ext.h + ch * .11), b: premierPic(py, ext.b - ch * .02, ext.b - ch * .11)
+  };
+  return { ext, int };
+}
+function ratios(m) {
+  const gl = m.int.g - m.ext.g, dr = m.ext.d - m.int.d, ht = m.int.h - m.ext.h, bs = m.ext.b - m.int.b;
+  const f = (a, b) => { const t = a + b; if (t <= 0) return null; const p = Math.round(Math.max(a, b) / t * 100); return { max: p, txt: `${a >= b ? p : 100 - p}/${a >= b ? 100 - p : p}` }; };
+  return { lr: f(gl, dr), hb: f(ht, bs), px: { gl, dr, ht, bs } };
+}
+function noteCentrage(recto, verso) {
+  const fr = Math.max(recto?.lr?.max ?? 50, recto?.hb?.max ?? 50), ve = verso ? Math.max(verso.lr?.max ?? 50, verso.hb?.max ?? 50) : null;
+  for (const [n, f, b] of BAREME_PSA) if (fr <= f && (ve == null || ve <= b)) return n;
+  return 2;
+}
+
+/* Étape 2 : éditeur de centrage (lignes déplaçables + loupe) */
+function scanCentrage(entete) {
+  const S = Scan, canvas = S.photos[S.face], m = S.mesures[S.face];
+  $("#vue").innerHTML = `${entete}
+  <div class="titre-section" style="margin-top:0"><h2>Centrage du ${S.face}</h2><button class="btn discret" id="b-reprendre">Reprendre</button></div>
+  <div class="grille deux">
+    <div><div class="editeur" id="editeur"><canvas id="toile"></canvas><div class="loupe" id="loupe" hidden><canvas width="236" height="236"></canvas></div></div>
+      <p class="source" style="text-align:center">Glisse les lignes : <b style="color:var(--or)">jaunes</b> sur le bord de la carte, <b style="color:var(--bleu)">bleues</b> sur la fin de la bordure. Une loupe apparaît pendant le réglage.</p></div>
+    <div class="grille" style="align-content:start">
+      <div class="mesures" id="mesures"></div>
+      <div class="note-estimee" id="note-centrage"></div>
+      <p class="source" style="margin:0">Barèmes PSA pour le centrage : 55/45 au recto (75/25 au verso) pour un 10, 60/40 pour un 9, 65/35 pour un 8. Les cartes sans bordure (full art) ne se mesurent pas ainsi.</p>
+      <div class="btns">${S.face === "recto"
+        ? `<button class="btn principal" id="b-verso" style="flex:1">Mesurer aussi le verso</button><button class="btn" id="b-suite">Passer à l’état</button>`
+        : `<button class="btn principal" id="b-suite" style="flex:1">Passer à l’état</button>`}</div>
+    </div>
+  </div>`;
+  const toile = $("#toile"), ctx = toile.getContext("2d"), ed = $("#editeur"), loupe = $("#loupe"), lctx = loupe.querySelector("canvas").getContext("2d");
+  toile.width = canvas.width; toile.height = canvas.height;
+  const lignes = [["ext", "g", "x"], ["ext", "d", "x"], ["ext", "h", "y"], ["ext", "b", "y"], ["int", "g", "x"], ["int", "d", "x"], ["int", "h", "y"], ["int", "b", "y"]];
+  const dessiner = () => {
+    ctx.drawImage(canvas, 0, 0);
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    const e = m.ext; ctx.fillRect(0, 0, toile.width, e.h); ctx.fillRect(0, e.b, toile.width, toile.height - e.b); ctx.fillRect(0, e.h, e.g, e.b - e.h); ctx.fillRect(e.d, e.h, toile.width - e.d, e.b - e.h);
+    const ep = Math.max(2, toile.width / 260);
+    lignes.forEach(([k, c, axe]) => {
+      ctx.strokeStyle = k === "ext" ? "#f5b524" : "#3b78ff"; ctx.lineWidth = ep; ctx.setLineDash(k === "int" ? [ep * 4, ep * 2.5] : []);
+      ctx.beginPath(); const v = m[k][c];
+      if (axe === "x") { ctx.moveTo(v, 0); ctx.lineTo(v, toile.height); } else { ctx.moveTo(0, v); ctx.lineTo(toile.width, v); }
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    majMesures();
+  };
+  const majMesures = () => {
+    const r = ratios(m), rec = S.face === "recto" ? r : (S.mesures.recto ? ratios(S.mesures.recto) : null), ver = S.face === "verso" ? r : (S.mesures.verso ? ratios(S.mesures.verso) : null);
+    $("#mesures").innerHTML = `
+      <div class="mesure"><span>Gauche / droite</span><b>${r.lr?.txt || "—"}</b><small>${r.px.gl} px · ${r.px.dr} px</small></div>
+      <div class="mesure"><span>Haut / bas</span><b>${r.hb?.txt || "—"}</b><small>${r.px.ht} px · ${r.px.bs} px</small></div>`;
+    const n = noteCentrage(rec, ver);
+    $("#note-centrage").innerHTML = `<div class="badge">${n}</div><div><b>Centrage compatible PSA ${n}</b><p>${ver ? "Recto et verso mesurés." : S.face === "recto" ? "Recto seul : le verso peut abaisser la note." : ""} Les coins, bords et surface se vérifient à l’étape suivante.</p></div>`;
+  };
+  dessiner();
+  // Déplacement des lignes
+  let prise = null;
+  const coords = ev => { const r = toile.getBoundingClientRect(), p = ev.touches ? ev.touches[0] : ev; return { x: (p.clientX - r.left) / r.width * toile.width, y: (p.clientY - r.top) / r.height * toile.height, ech: toile.width / r.width, cx: p.clientX - r.left, cy: p.clientY - r.top, rw: r.width }; };
+  const debut = ev => {
+    const p = coords(ev), seuil = 22 * p.ech;
+    let mieux = null, dist = seuil;
+    lignes.forEach(l => { const v = m[l[0]][l[1]], dd = Math.abs((l[2] === "x" ? p.x : p.y) - v); if (dd < dist) { dist = dd; mieux = l; } });
+    if (!mieux) return;
+    prise = mieux; ev.preventDefault(); bouger(ev);
+  };
+  const bouger = ev => {
+    if (!prise) return; ev.preventDefault();
+    const p = coords(ev), [k, c, axe] = prise;
+    m[k][c] = Math.round(Math.max(0, Math.min(axe === "x" ? toile.width - 1 : toile.height - 1, axe === "x" ? p.x : p.y)));
+    dessiner();
+    // Loupe ×4 autour du doigt, décalée pour rester visible
+    loupe.hidden = false;
+    const z = 4, taille = 236 / z;
+    lctx.imageSmoothingEnabled = false;
+    lctx.drawImage(toile, p.x - taille / 2, p.y - taille / 2, taille, taille, 0, 0, 236, 236);
+    lctx.strokeStyle = "rgba(255,255,255,.7)"; lctx.lineWidth = 1; lctx.beginPath(); lctx.moveTo(118, 0); lctx.lineTo(118, 236); lctx.moveTo(0, 118); lctx.lineTo(236, 118); lctx.stroke();
+    loupe.style.left = Math.min(p.rw - 124, Math.max(6, p.cx - 59)) + "px";
+    loupe.style.top = Math.max(6, p.cy - 150) + "px";
+  };
+  const fin = () => { prise = null; loupe.hidden = true; };
+  ed.addEventListener("pointerdown", e => { ed.setPointerCapture(e.pointerId); debut(e); });
+  ed.addEventListener("pointermove", bouger);
+  ed.addEventListener("pointerup", fin); ed.addEventListener("pointercancel", fin);
+  $("#b-reprendre").onclick = () => { delete S.photos[S.face]; delete S.mesures[S.face]; S.etape = "camera"; vueScan(); };
+  const bv = $("#b-verso"); if (bv) bv.onclick = () => { S.face = "verso"; S.etape = "camera"; vueScan(); };
+  $("#b-suite").onclick = () => { S.etape = "controle"; vueScan(); };
+}
+
+/* Étape 3 : contrôle guidé (coins, bords, surface) et note estimée */
+function scanControle(entete) {
+  const S = Scan;
+  const photo = S.photos.recto;
+  $("#vue").innerHTML = `${entete}
+  <div class="titre-section" style="margin-top:0"><h2>État de la carte</h2><span class="petit">sous une bonne lumière, carte inclinée</span></div>
+  <div class="grille deux">
+    <div class="carte-ui controle" id="controle">${CRITERES.map(([k, n, aide]) => `
+      <div class="critere"><span>${n} <small>· ${aide}</small></span><div class="niveaux" data-crit="${k}">${NIVEAUX.map(([lbl, v]) => `<button type="button" data-v="${v}" aria-pressed="${S.controle[k] === v}">${lbl}</button>`).join("")}</div></div>`).join("")}
+    </div>
+    <div class="grille" style="align-content:start">
+      ${photo ? `<div class="carte-ui" style="padding:10px"><canvas id="apercu" style="width:100%;border-radius:10px;display:block"></canvas><p class="source" style="text-align:center;margin:6px 0 0">Touche un coin de l’image pour l’agrandir.</p></div>` : ""}
+      <div class="note-estimee" id="note-finale"></div>
+      <button class="btn principal" id="b-identifier">Identifier la carte</button>
+    </div>
+  </div>`;
+  $$("[data-crit]").forEach(z => $$("button", z).forEach(b => b.onclick = () => { S.controle[z.dataset.crit] = +b.dataset.v; $$("button", z).forEach(x => x.setAttribute("aria-pressed", x === b)); majNote(); }));
+  if (photo) {
+    const ap = $("#apercu"), m = S.mesures.recto.ext, w = m.d - m.g, h = m.b - m.h;
+    ap.width = w; ap.height = h; ap.getContext("2d").drawImage(photo, m.g, m.h, w, h, 0, 0, w, h);
+    let zoom = null;
+    ap.onclick = ev => {
+      const r = ap.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height, c = ap.getContext("2d");
+      if (zoom) { zoom = null; c.drawImage(photo, m.g, m.h, w, h, 0, 0, w, h); return; }
+      zoom = 1; const t = .32, sx = m.g + Math.max(0, Math.min(1 - t, x - t / 2)) * w, sy = m.h + Math.max(0, Math.min(1 - t, y - t / 2)) * h;
+      c.drawImage(photo, sx, sy, w * t, h * t, 0, 0, w, h);
+    };
+  }
+  const majNote = () => {
+    const rec = S.mesures.recto ? ratios(S.mesures.recto) : null, ver = S.mesures.verso ? ratios(S.mesures.verso) : null;
+    const nc = rec ? noteCentrage(rec, ver) : null;
+    const notes = [nc, ...CRITERES.map(([k]) => S.controle[k])].filter(v => v != null);
+    const manque = CRITERES.filter(([k]) => S.controle[k] == null).length;
+    if (!notes.length) { $("#note-finale").innerHTML = `<div class="badge">?</div><div><b>Note estimée</b><p>Évalue chaque critère.</p></div>`; S.note = null; return; }
+    const n = Math.min(...notes), haut = Math.min(10, n + (notes.filter(v => v === n).length === 1 && n < 10 ? 1 : 0));
+    const etat = n >= 9 ? "NM" : n >= 7 ? "EX" : n >= 6 ? "GD" : n >= 5 ? "LP" : n >= 3 ? "PL" : "PO";
+    S.note = { n, haut, etat, nc };
+    $("#note-finale").innerHTML = `<div class="badge">${n}${haut > n ? "–" + haut : ""}</div><div><b>Estimation PSA ${n}${haut > n ? " à " + haut : ""} · état ${etat}</b><p>${nc != null ? `Centrage ${nc}. ` : ""}${CRITERES.filter(([k]) => S.controle[k] != null).map(([k, l]) => `${l} ${S.controle[k]}`).join(", ")}${manque ? ` · ${manque} critère${manque > 1 ? "s" : ""} à évaluer` : ""}. Indicatif : seule une gradation officielle fait foi.</p></div>`;
+  };
+  majNote();
+  $("#b-identifier").onclick = () => { S.etape = "carte"; vueScan(); };
+}
+
+/* Étape 4 : lecture du numéro imprimé (OCR) puis choix de la carte */
+async function scanCarte(entete) {
+  const S = Scan;
+  $("#vue").innerHTML = `${entete}
+  <div class="titre-section" style="margin-top:0"><h2>Quelle carte ?</h2><button class="btn discret" id="b-recommencer">Nouveau scan</button></div>
+  <div class="carte-ui" id="lecture"><span class="chargement"></span> Lecture du numéro imprimé en bas de la carte…</div>
+  <div id="candidats" style="margin-top:14px"></div>
+  <div class="titre-section"><h2 style="font-size:17px">Pas la bonne ? Cherche-la</h2></div>
+  <div class="recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="sq" type="search" placeholder="Nom, numéro 25/102…"></div>
+  <div id="sres" style="margin-top:12px"></div>`;
+  $("#b-recommencer").onclick = recommencerScan;
+  const choisir = (lang, id) => choisirCarteScan(lang, id);
+  let minut;
+  $("#sq").oninput = e => { clearTimeout(minut); minut = setTimeout(async () => {
+    const q = e.target.value; if (!q.trim()) { $("#sres").innerHTML = ""; return; }
+    await Promise.all(["fr", "en", "ja"].map(l => chargerIndex(l).catch(() => null)));
+    afficherCandidats($("#sres"), rechercher(q, ["fr", "en", "ja"], 24).res.map(x => x.c), choisir);
+  }, 200); };
+  const lecture = $("#lecture");
+  if (!S.photos.recto) { lecture.textContent = "Pas de photo du recto : cherche la carte ci-dessous."; return; }
+  try {
+    const [res] = await Promise.all([lireNumero(S.photos.recto, S.mesures.recto.ext), ...["fr", "en", "ja"].map(l => chargerIndex(l).catch(() => null))]);
+    if (ETAT.vue !== "scan" || S.etape !== "carte") return;
+    if (!res) { lecture.innerHTML = "Numéro illisible sur la photo. Cherche la carte par son nom ci-dessous."; $("#sq").focus(); return; }
+    const cands = [];
+    for (const l of ["fr", "en", "ja"]) {
+      const ix = INDEX[l]; if (!ix) continue;
+      ix.cartes.forEach(c => { const set = ix.sets[c.set]; if (c.num === res.num && set && (set.off === res.denom || set.tot === res.denom)) cands.push(c); });
+    }
+    lecture.innerHTML = `Numéro lu : <b class="chiffre">${res.num}/${res.denom}</b> · ${cands.length ? `${cands.length} carte${cands.length > 1 ? "s" : ""} possible${cands.length > 1 ? "s" : ""}, choisis la tienne (et sa langue).` : "aucune carte avec ce numéro, cherche-la ci-dessous."}`;
+    afficherCandidats($("#candidats"), cands, choisir);
+    if (!cands.length) $("#sq").value = `${res.num}/${res.denom}`, $("#sq").dispatchEvent(new Event("input"));
+  } catch (e) {
+    console.error(e);
+    lecture.innerHTML = "La lecture automatique n’a pas fonctionné. Cherche la carte ci-dessous.";
+  }
+}
+function afficherCandidats(zone, cartes, surChoix) {
+  if (!cartes.length) { zone.innerHTML = ""; return; }
+  zone.innerHTML = `<div class="candidats">${cartes.map(c => { const set = INDEX[c.lang]?.sets[c.set]; return `<button class="tuile" data-c="${esc(c.id)}" data-l="${c.lang}"><span class="img">${c.img ? `<img loading="lazy" alt="" src="${esc(imgCarte(c.img))}">` : `<span class="sans">${esc(c.nom)}</span>`}<span class="marques"><span class="puce ${c.lang}">${COURT[c.lang]}</span></span></span><span class="t-nom">${esc(c.nom)}</span><span class="t-meta">${esc(set?.nom || c.set)} · ${esc(c.local)}</span></button>`; }).join("")}</div>`;
+  $$("[data-c]", zone).forEach(b => b.onclick = () => surChoix(b.dataset.l, b.dataset.c));
+}
+async function choisirCarteScan(lang, id) {
+  const S = Scan;
+  try {
+    const carte = await api(lang, "cards/" + id);
+    const rec = S.mesures.recto ? ratios(S.mesures.recto) : null, ver = S.mesures.verso ? ratios(S.mesures.verso) : null;
+    const centrage = rec ? { recto: { lr: rec.lr?.txt, hb: rec.hb?.txt }, ...(ver ? { verso: { lr: ver.lr?.txt, hb: ver.hb?.txt } } : {}) } : null;
+    const note = S.note;
+    formulaireCarte({ carte, lang, scan: { etat: note?.etat || "NM", centrage, controle: Object.keys(S.controle).length ? S.controle : null, note_estimee: note ? `PSA ${note.n}${note.haut > note.n ? "–" + note.haut : ""} estimé` : null } });
+  } catch (e) { erreur(e, "Carte"); }
+}
+
+/* OCR du numéro « 025/165 » en bas de la carte, avec Tesseract (chargé seulement au premier scan). */
+let tesseractPret = null;
+function chargerTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  return tesseractPret ||= new Promise((ok, ko) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"; s.onload = ok; s.onerror = () => { tesseractPret = null; ko(new Error("Lecteur de texte indisponible")); }; document.head.append(s); });
+}
+async function lireNumero(photo, ext) {
+  await chargerTesseract();
+  const w = ext.d - ext.g, h = ext.b - ext.h;
+  const zones = [[0, .86, .55, .14], [.45, .86, .55, .14], [0, .9, 1, .1]]; // bas gauche (cartes récentes), bas droite (anciennes), bande entière
+  const worker = await Tesseract.createWorker("eng");
+  try {
+    await worker.setParameters({ tessedit_char_whitelist: "0123456789/", tessedit_pageseg_mode: "11" });
+    for (const [zx, zy, zw, zh] of zones) {
+      const c = document.createElement("canvas"), sw = w * zw, shh = h * zh, ech = Math.max(2, 900 / sw);
+      c.width = Math.round(sw * ech); c.height = Math.round(shh * ech);
+      const x = c.getContext("2d", { willReadFrequently: true });
+      x.imageSmoothingQuality = "high";
+      x.drawImage(photo, ext.g + w * zx, ext.h + h * zy, sw, shh, 0, 0, c.width, c.height);
+      // Niveaux de gris et contraste étiré : texte noir, fond clair
+      const im = x.getImageData(0, 0, c.width, c.height), d = im.data; let mn = 255, mx = 0;
+      for (let i = 0; i < d.length; i += 4) { const v = d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11; d[i] = v; if (v < mn) mn = v; if (v > mx) mx = v; }
+      const sombre = (() => { let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i]; return s / (d.length / 4) < 110; })();
+      for (let i = 0; i < d.length; i += 4) { let v = (d[i] - mn) / Math.max(1, mx - mn) * 255; if (sombre) v = 255 - v; d[i] = d[i + 1] = d[i + 2] = v; }
+      x.putImageData(im, 0, 0);
+      const { data } = await worker.recognize(c);
+      const m = (data.text || "").replace(/\s+/g, " ").match(/(\d{1,3})\s?\/\s?(\d{2,3})/);
+      if (m) { const n = parseInt(m[1], 10), dn = parseInt(m[2], 10); if (n > 0 && dn > 0 && n <= dn + 150) return { num: n, denom: dn }; }
+    }
+    return null;
+  } finally { worker.terminate(); }
+}
+
+/* ═══════════ Démarrage ═══════════ */
+async function demarrer(session) {
+  const uid = session?.user?.id || null;
+  if (demarrer.uid === uid && demarrer.fait) return;
+  demarrer.uid = uid; demarrer.fait = true;
+  ETAT.session = session;
+  if (!session) { ETAT.charge = false; vueConnexion(); return; }
+  $("#nav").hidden = false; $("#tete-actions").hidden = false;
+  if (!ETAT.charge) {
+    $("#vue").innerHTML = `<div class="vide"><span class="chargement"></span></div>`;
+    try { await chargerDonnees(); } catch (e) { erreur(e, "Chargement"); }
+  }
+  routeur();
+  rafraichirCotesAnciennes().catch(() => {});
+  // Prépare l'index de recherche en arrière-plan
+  setTimeout(() => ["fr", "en", "ja"].forEach(l => chargerIndex(l).catch(() => {})), 1500);
+}
+sb.auth.onAuthStateChange((evt, session) => {
+  if (evt === "SIGNED_IN") demarrer(session);
+  else if (evt === "SIGNED_OUT") { ETAT.cartes = []; ETAT.suivis = []; ETAT.valeurs = []; demarrer(null); }
+  else if (session) ETAT.session = session;
+});
+sb.auth.getSession().then(({ data }) => demarrer(data.session));
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
