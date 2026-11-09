@@ -1538,12 +1538,23 @@ function vueReglages() {
         <p class="source" style="margin:0">Connecté : <b>${esc(ETAT.session?.user?.email || "")}</b></p>
         <button class="btn danger" id="b-deco">Se déconnecter</button>
       </div>
+      <div class="carte-ui grille">
+        <h2 style="font-size:18px">Crédits des prix gradés</h2>
+        <div id="credits" class="source" style="margin:0"><span class="chargement"></span></div>
+      </div>
       <div class="carte-ui">
         <h2 style="font-size:18px">Sources</h2>
         <p class="source">Données des cartes et cotes : <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a> (cotes Cardmarket en euros, TCGplayer en dollars), relevées chaque nuit vers 4 h 30. Cartes gradées et note PSA estimée : médiane des ventes eBay réelles par note, via <a href="https://www.pokemonpricetracker.com" target="_blank" rel="noopener">PokemonPriceTracker</a> (relevé tous les 3 jours, version anglaise pour les cartes françaises), convertie en euros au taux BCE ; sans cote Cardmarket, la cote brute vient de TCGplayer. Tes cartes gradées gardent la valeur que tu saisis. Le centrage et la note estimée du scanner sont indicatifs et ne remplacent pas une gradation officielle.</p>
       </div>
     </div>
   </div>`;
+  sb.from("ppt_etat").select("*").maybeSingle().then(({ data: e }) => {
+    const z = $("#credits"); if (!z) return;
+    const plein = !e?.remise || new Date(e.remise) <= new Date(), limite = e?.limite ?? 100, restant = plein ? limite : (e?.restant ?? 0);
+    const remise = e?.remise ? new Date(Math.max(new Date(e.remise), Date.now())).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" }) : "";
+    z.innerHTML = `<div class="barre-l" style="grid-template-columns:1fr auto"><span class="piste"><i style="width:${restant / limite * 100}%;background:${restant < 20 ? "var(--or)" : "var(--vert)"}"></i></span><b class="chiffre">${restant} / ${limite}</b></div>
+      <p style="margin:8px 0 0">Formule gratuite PokemonPriceTracker : ${limite} crédits par jour, 2 par carte.${plein ? "" : ` Remise à zéro ${esc(remise)}.`} Quand il n’en reste plus, l’appli affiche les derniers prix relevés, avec leur date.</p>`;
+  });
   $("#f-budget").onsubmit = async e => {
     e.preventDefault();
     const v = { budget_min: num(e.target.budget_min.value), budget_max: num(e.target.budget_max.value), frais_gradation: num(e.target.frais_gradation.value) };
