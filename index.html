@@ -419,8 +419,8 @@ const ESP = { pret: null, parNom: new Map(), noms: [], ja: new Map(), info: {} }
 const normJa = s => norm(s).replace(/ /g, "");
 function chargerEspeces() {
   return ESP.pret ||= fetch("noms.json").then(r => { if (!r.ok) throw new Error("noms.json " + r.status); return r.json(); }).then(d => {
-    for (const [dex, fr, en, ja] of d.especes) {
-      ESP.info[dex] = { fr, en, ja };
+    for (const [dex, fr, en, ja, drapeaux = ""] of d.especes) {
+      ESP.info[dex] = { fr, en, ja, dragon: drapeaux.includes("D"), legendaire: drapeaux.includes("L"), fabuleux: drapeaux.includes("F"), icone: drapeaux.includes("I") };
       for (const nm of [fr, en]) { const n = norm(nm); if (!n) continue; if (!ESP.parNom.has(n)) ESP.parNom.set(n, dex); ESP.noms.push([n, dex]); }
       if (ja) {
         const j = normJa(ja); if (!ESP.parNom.has(j)) ESP.parNom.set(j, dex); ESP.noms.push([j, dex]);
