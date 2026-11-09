@@ -847,7 +847,7 @@ function ligneCarte(c, droite) {
 function vueRecap() {
   const t = totaux(), pv = t.total - t.achat, pvPct = t.achat ? pv / t.achat * 100 : null;
   const v = ETAT.valeurs, hier = v.length > 1 ? v.at(-2) : null;
-  const var1 = hier ? t.total - (+hier.valeur_brut + +hier.valeur_gradee) : null;
+  const var1 = hier && t.nb ? t.total - (+hier.valeur_brut + +hier.valeur_gradee) : null;
   const top = ETAT.cartes.filter(c => c.statut === "possedee" && c.valeur_unitaire != null).sort((a, b) => b.valeur_unitaire * b.quantite - a.valeur_unitaire * a.quantite).slice(0, 5);
   const maxL = Math.max(1, ...Object.values(t.parLangue));
   $("#vue").innerHTML = `
@@ -902,6 +902,7 @@ function vueRecap() {
   if (!pts.length || pts.at(-1).x.toLocaleDateString("sv-SE") !== ajd) pts.push({ x: new Date(ajd + "T12:00:00"), y: t.total, achat: t.achat });
   else { pts.at(-1).y = t.total; pts.at(-1).achat = t.achat; }
   const css = getComputedStyle(document.documentElement);
+  if (!t.nb && !v.some(x => +x.valeur_brut + +x.valeur_gradee > 0)) { $("#courbe-valeur").innerHTML = `<div class="vide" style="padding:56px 0">La courbe démarre avec ta première carte.</div>`; return; }
   courbe($("#courbe-valeur"), [
     { nom: "Valeur", couleur: css.getPropertyValue("--accent").trim(), points: pts, aire: true },
     { nom: "Achats", couleur: css.getPropertyValue("--bleu").trim(), points: pts.map(p => ({ x: p.x, y: p.achat })) }
