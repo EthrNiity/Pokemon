@@ -12,6 +12,7 @@ En ligne : https://ethrniity.github.io/Pokemon/ (installable sur le téléphone 
 | **Chercher** | Recherche dans toutes les cartes FR, EN et JP : sans accents, tolère les fautes, `4/102` pour le numéro imprimé, mots du nom de série, `fr` / `en` / `jp`. Les noms de Pokémon marchent dans toutes les langues (« artikodin » trouve aussi Articuno et フリーザー), les séries japonaises anciennes répondent à leur nom français/anglais (« fossile »), et le n° du Pokédex imprimé sur les anciennes japonaises est reconnu (« artikodin jp fossil 144 ») |
 | **Fiche** | Cote Cardmarket (tendance, moyennes 1/7/30 j, plus bas, reverse), TCGplayer, courbe de prix, liens Cardmarket et ventes eBay, ajout, suivi |
 | **Scanner** | 1. photo dans un cadre : toucher pour la mise au point (Android/Chrome), zoom, photo pleine résolution, alerte si floue ; ou l’appareil photo du téléphone (le plus fiable sur iPhone) · 2. centrage gauche/droite et haut/bas, recto et verso, lignes réglables avec loupe · 3. coins, bords, surface et note PSA estimée · 4. lecture du numéro imprimé et choix de la carte |
+| **Pépites** | Sélection de la semaine (chaque dimanche) : 15 cartes notées sur 100, parmi ~1 000 dragons, légendaires et Pokémon iconiques en raretés recherchées, dans le budget réglé (80–250 € par défaut) |
 | **Collection** | Filtres (brutes, gradées, langue), tri (valeur, plus-value, série…), modification, vente totale ou partielle |
 | **Ventes** | Chiffre de ventes, frais, bénéfice net, détail par mois |
 | **Réglages** | Coefficients de valeur selon l’état, export JSON et CSV, compte |
@@ -37,6 +38,16 @@ En ligne : https://ethrniity.github.io/Pokemon/ (installable sur le téléphone 
 - `pokemon._maj_gradees` : identifiant TCGplayer fourni par TCGdex → `GET /api/v2/cards?tcgPlayerId=…&includeEbay=true` (2 crédits) → médianes `ebay.salesByGrade.psaN`, prix brut `prices.market`, convertis en euros (taux BCE, `pokemon.taux`). Résultats dans `pokemon.prix_gradees`.
 - Relevé de nuit (`pokemon-releve-gradees`, 4 h 50) : cartes possédées et suivies tous les 3 jours, 40 au plus, plafond 95 crédits / jour (`pokemon.ppt_conso`). À l’ajout d’une carte et depuis la fiche : `pokemon.rafraichir_gradees`.
 - Les cartes françaises sont cotées sur leur version anglaise (les ventes gradées FR sont rares) ; les japonaises sur leur version japonaise.
+
+### Analyse « vaut-elle le coup » (`pokemon._analyser`, RPC `pokemon.analyser`)
+
+Score sur 100 : désirabilité 25 (légendaire, dragon, icône), rareté 20, ancienneté de la série 15, dynamique du prix Cardmarket 15 (tendance vs moyenne 30 j), fiabilité 15 (nombre de ventes, écart prix bas / moyen), potentiel gradé 10 (PSA 10 / brut, au moins 3 ventes). Verdict : ≥ 75 très intéressante, ≥ 62 intéressante, ≥ 48 à surveiller. Répartition des ventes PSA par note (ce n’est pas la population PSA, réservée aux offres payantes). Indice de collectionneur, pas une prédiction.
+
+### Sélection de la semaine
+
+- `pokemon.candidats` : cartes EN des raretés recherchées dont le nom contient un Pokémon dragon, légendaire, fabuleux ou iconique (`pokemon.especes`, depuis `noms.json`). Liste refaite le lundi.
+- `pokemon.maj_candidats` (chaque nuit à 2 h 20, 170 cartes par roulement) : prix TCGdex et présélection, sans crédit PokemonPriceTracker.
+- `pokemon.selection_hebdo` (dimanche 6 h 30) : 20 meilleures dans le budget, analyse complète avec ventes réelles (≈ 40 crédits), 15 retenues dans `pokemon.selections`.
 
 ## Limites connues
 

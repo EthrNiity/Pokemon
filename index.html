@@ -122,6 +122,48 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .segment{display:flex;background:var(--papier2);border-radius:13px;padding:4px;gap:4px}
 .segment button{flex:1;border:0;background:transparent;border-radius:10px;padding:9px 8px;font-weight:800;color:var(--doux);font-size:14.5px}
 .segment button[aria-pressed="true"]{background:var(--papier);color:var(--encre);box-shadow:var(--ombre)}
+/* Analyse */
+.analyse{display:grid;gap:12px;margin-top:6px}
+.analyse.partielle{opacity:.85}
+.analyse-tete{display:flex;gap:14px;align-items:center}
+.analyse-tete p{margin:2px 0 0;color:var(--doux);font-size:13.5px}
+.verdict-txt{font-family:var(--f-titre);font-size:21px}
+.jauge{--v:50;--c:var(--bleu);width:76px;height:76px;flex:none;border-radius:50%;display:grid;place-content:center;text-align:center;
+  background:radial-gradient(closest-side,var(--papier) 76%,transparent 78% 100%),conic-gradient(var(--c) calc(var(--v)*1%),var(--papier2) 0)}
+.jauge b{font-family:var(--f-titre);font-size:26px;line-height:1}
+.jauge span{font-size:11px;color:var(--doux);font-weight:800}
+.criteres,.repart{display:grid;gap:7px}
+.critere-l,.repart-l{display:grid;grid-template-columns:118px 1fr 74px;gap:10px;align-items:center;font-size:13.5px;font-weight:700}
+.repart-l{grid-template-columns:54px 1fr auto}
+.repart-l small{white-space:nowrap}
+.critere-l i,.repart-l i{height:9px;border-radius:5px;background:var(--papier2);overflow:hidden}
+.critere-l i b,.repart-l i b{display:block;height:100%;border-radius:5px;background:var(--bleu)}
+.repart-l i b{background:var(--ja)}
+.critere-l small,.repart-l small{color:var(--doux);font-weight:700;font-size:12px;text-align:right;font-family:var(--f-chiffre)}
+.critere-l.off{opacity:.55}
+.raisons{list-style:none;margin:0;padding:0;display:grid;gap:5px;font-size:14px}
+.raisons li{padding-left:22px;position:relative}
+.raisons li::before{position:absolute;left:0;top:0;font-weight:800}
+.raisons li.ok::before{content:"✓";color:var(--vert)}
+.raisons li.alerte::before{content:"!";color:var(--or);width:16px;text-align:center}
+.gradation{display:grid;gap:4px;padding:12px 14px;border-radius:14px;background:var(--papier2);font-size:14px}
+.gradation>span{font-size:12.5px;font-weight:800;color:var(--doux)}
+/* Pépites */
+.pepite{display:grid;grid-template-columns:22px 58px minmax(0,1fr) 68px;gap:12px;align-items:center;text-align:left;width:100%;padding:10px 12px 10px 8px;background:var(--papier);border:1px solid var(--trait);border-radius:16px;color:inherit}
+.pepite:hover{border-color:color-mix(in srgb,var(--bleu) 45%,var(--trait))}
+.pep-rang{font-family:var(--f-titre);font-weight:700;font-size:18px;color:var(--doux);text-align:center}
+.pep-img{width:58px}
+.pep-corps{min-width:0;display:grid;gap:3px}
+.pep-nom{font-weight:800;font-size:15.5px;line-height:1.2}
+.pep-meta{font-size:12.5px;color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pep-raisons{display:flex;flex-wrap:wrap;gap:4px}
+.pep-raisons span{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--papier2);color:var(--doux)}
+.pep-prix{font-size:13px;color:var(--doux)}
+.pep-prix b{font-family:var(--f-chiffre);color:var(--encre)}
+.pep-score{display:grid;justify-items:center;gap:2px;text-align:center}
+.pep-score b{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-titre);font-size:19px;color:#fff;background:var(--c)}
+.pep-score small{font-size:10.5px;font-weight:800;color:var(--doux);line-height:1.15}
+@media (max-width:420px){.pepite{grid-template-columns:50px minmax(0,1fr) 54px}.pep-rang{display:none}.pep-img{width:50px}.pep-score b{width:40px;height:40px;font-size:17px}}
 .toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--encre);color:var(--fond);padding:10px 16px;border-radius:12px;font-weight:700;font-size:14.5px;z-index:90;transition:.25s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.ok{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (min-width:900px){.toast{bottom:28px}}
@@ -305,8 +347,8 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
     <a href="#recap" data-vue="recap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span>Récap</span></a>
     <a href="#recherche" data-vue="recherche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Chercher</span></a>
     <a href="#scan" data-vue="scan" class="scan-bouton" aria-label="Scanner une carte"><span class="rond"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"/><rect x="8.5" y="7.5" width="7" height="9" rx="1.2"/></svg><span class="lbl-scan">Scanner</span></span></a>
+    <a href="#pepites" data-vue="pepites"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3l3 6 3-6M12 9v12"/></svg><span>Pépites</span></a>
     <a href="#collection" data-vue="collection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="9" rx="1.5"/><rect x="14" y="4" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="18" height="5" rx="1.5"/></svg><span>Collection</span></a>
-    <a href="#ventes" data-vue="ventes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span>Ventes</span></a>
   </nav>
 
   <main id="vue"></main>
@@ -729,13 +771,14 @@ async function rafraichirCotesAnciennes() {
 }
 
 /* ═══════════ Navigation ═══════════ */
-const VUES = { recap: vueRecap, recherche: vueRecherche, scan: vueScan, collection: vueCollection, ventes: vueVentes, reglages: vueReglages };
+const VUES = { recap: vueRecap, recherche: vueRecherche, scan: vueScan, pepites: vuePepites, collection: vueCollection, ventes: vueVentes, reglages: vueReglages };
 function routeur() {
   const v = (location.hash || "#recap").slice(1).split("?")[0];
   if (!ETAT.session) { vueConnexion(); return; }
   if (ETAT.vue === "scan" && v !== "scan") Scan.arreter();
   ETAT.vue = VUES[v] ? v : "recap";
-  $$("#nav a").forEach(a => { if (a.dataset.vue === ETAT.vue) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  const onglet = ETAT.vue === "ventes" ? "collection" : ETAT.vue;
+  $$("#nav a").forEach(a => { if (a.dataset.vue === onglet) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
   rendre();
   window.scrollTo({ top: 0 });
 }
@@ -1048,6 +1091,7 @@ async function ouvrirFiche(lang, id) {
       <div class="titre-section" style="margin-top:16px"><h2 style="font-size:17px">Courbe de prix</h2><span class="petit" id="info-courbe"></span></div>
       <div class="courbe" id="courbe-carte" style="height:180px"></div>
       <div class="legende" id="legende-carte"></div>
+      <div id="bloc-analyse"></div>
       <div id="bloc-gradees"></div>
       <div class="btns" style="margin-top:16px">
         <button class="btn principal" id="f-ajouter">${icone.plus} Ajouter à ma collection</button>
@@ -1063,6 +1107,23 @@ async function ouvrirFiche(lang, id) {
   brancherLignes();
   $("#f-ajouter").onclick = () => formulaireCarte({ carte, lang });
   $("#f-suivre").onclick = () => basculerSuivi(carte, lang);
+  // Analyse « vaut-il le coup » (en cache du jour, sinon à la demande)
+  const zoneAnalyse = $("#bloc-analyse", f);
+  const montrerAnalyse = res => { if (feuille.courante?.f === f) zoneAnalyse.innerHTML = htmlAnalyse(res); };
+  sb.from("analyses").select("resultat").eq("carte_id", carte.id).eq("langue", lang).order("jour", { ascending: false }).limit(1).maybeSingle().then(({ data }) => {
+    if (data?.resultat && data.resultat.prix?.ventes_total != null) return montrerAnalyse(data.resultat);
+    zoneAnalyse.innerHTML = `<div class="titre-section" style="margin-top:16px"><h2 style="font-size:17px">Vaut-elle le coup ?</h2></div>
+      ${data?.resultat ? htmlAnalyse(data.resultat, true) : ""}
+      <button class="btn bleu" id="b-analyser">${icone.etoile} ${data?.resultat ? "Compléter avec les ventes réelles" : "Analyser cette carte"}</button>
+      <p class="source">Score sur 100, verdict, répartition des ventes PSA, rentabilité d’une gradation.</p>`;
+    $("#b-analyser", zoneAnalyse).onclick = async e => {
+      const b = e.currentTarget; b.disabled = true; b.innerHTML = '<span class="chargement"></span> Analyse…';
+      const { data: res, error } = await sb.rpc("analyser", { p_carte: carte.id, p_langue: lang });
+      if (error) { erreur(error, "Analyse"); b.disabled = false; b.textContent = "Réessayer"; return; }
+      montrerAnalyse(res);
+      sb.from("prix_gradees").select("*").eq("carte_id", carte.id).eq("langue", lang).order("jour", { ascending: false }).limit(1).maybeSingle().then(({ data: d }) => afficherGradees(d || null));
+    };
+  });
   // Prix des versions gradées : médiane des ventes eBay réelles par note (PokemonPriceTracker), en euros
   const afficherGradees = data => {
     const zone = $("#bloc-gradees", f); if (!zone || feuille.courante?.f !== f) return;
@@ -1292,11 +1353,106 @@ function formulaireVente(L) {
   });
 }
 
+/* ═══════════ Analyse d'une carte (rendu) ═══════════ */
+const CRITERES_ANALYSE = [
+  ["desirabilite", "Désirabilité", "Pokémon recherché : légendaire, dragon, icône"],
+  ["rarete", "Rareté", "Illustration spéciale, dorée, secrète, holo d’époque…"],
+  ["anciennete", "Ancienneté", "Série plus imprimée = offre qui se raréfie"],
+  ["dynamique", "Dynamique du prix", "Tendance Cardmarket vs moyenne 30 jours"],
+  ["fiabilite", "Fiabilité", "Nombre de ventes et écart entre prix bas et moyen"],
+  ["gradee", "Potentiel gradé", "Écart entre brut et PSA 10"]
+];
+function couleurScore(n) { return n >= 75 ? "var(--vert)" : n >= 62 ? "var(--bleu)" : n >= 48 ? "var(--or)" : "var(--rouge)"; }
+function htmlAnalyse(a, partielle) {
+  if (!a) return "";
+  const p = a.prix || {}, frais = num(ETAT.reglages.frais_gradation) ?? 50;
+  const bmin = num(ETAT.reglages.budget_min) ?? 80, bmax = num(ETAT.reglages.budget_max) ?? 250;
+  const budget = p.brut == null ? "" : p.brut < bmin ? "sous ton budget" : p.brut > bmax ? "au-dessus de ton budget" : "dans ton budget";
+  const rep = a.repartition_psa || [];
+  const maxPct = Math.max(1, ...rep.map(r => r.pct));
+  const gain = v => v == null || p.brut == null ? null : v - p.brut - frais;
+  return `<div class="analyse ${partielle ? "partielle" : ""}">
+    <div class="analyse-tete">
+      <div class="jauge" style="--v:${a.score};--c:${couleurScore(a.score)}"><b>${a.score}</b><span>/100</span></div>
+      <div><b class="verdict-txt" style="color:${couleurScore(a.score)}">${esc(a.verdict)}</b>
+        <p>${p.brut != null ? `Brut ${eur(p.brut)} (${p.source_brut === "tcgplayer" ? "TCGplayer" : "Cardmarket"})${budget ? " · " + budget : ""}` : "Pas de prix brut"}${partielle ? " · sans les ventes réelles" : ""}</p></div>
+    </div>
+    <div class="criteres">${CRITERES_ANALYSE.map(([k, n, aide]) => { const c = a.criteres?.[k]; if (!c) return `<div class="critere-l off"><span>${n}</span><i></i><small>pas assez de ventes</small></div>`;
+      return `<div class="critere-l" title="${esc(aide)}"><span>${n}</span><i><b style="width:${c[0] / c[1] * 100}%"></b></i><small>${c[0]}/${c[1]}</small></div>`; }).join("")}</div>
+    ${(a.raisons || []).length ? `<ul class="raisons">${a.raisons.map(r => `<li class="ok">${esc(r)}</li>`).join("")}${(a.alertes || []).map(r => `<li class="alerte">${esc(r)}</li>`).join("")}</ul>` : (a.alertes || []).length ? `<ul class="raisons">${a.alertes.map(r => `<li class="alerte">${esc(r)}</li>`).join("")}</ul>` : ""}
+    ${rep.length ? `<div class="titre-section" style="margin:14px 0 6px"><h2 style="font-size:15px">Répartition des ventes PSA</h2><span class="petit">${a.ventes_psa} ventes</span></div>
+      <div class="repart">${rep.map(r => `<div class="repart-l"><span>PSA ${r.note}</span><i><b style="width:${r.pct / maxPct * 100}%"></b></i><small>${String(r.pct).replace(".", ",")} % · ${eur(r.eur)}</small></div>`).join("")}</div>
+      <p class="source">Part de chaque note parmi les ventes réelles (eBay, Fanatics), pas la population PSA (réservée aux offres payantes) : les belles notes sont plus souvent revendues.</p>` : ""}
+    ${p.psa10 != null || p.psa9 != null ? `<div class="gradation">
+      <span>Faire grader (frais estimés ${eur(frais)} : gradation + envois)</span>
+      ${[["PSA 10", p.psa10], ["PSA 9", p.psa9]].filter(x => x[1] != null).map(([n, v]) => { const g = gain(v); return `<div><b>${n}</b> revente ≈ ${eur(v)} → <b class="${signe(g)}">${g >= 0 ? "+" : ""}${eur(g)}</b></div>`; }).join("")}
+    </div>` : ""}
+    <p class="source">Indice calculé sur des critères de collectionneurs et les prix publics. Ce n’est pas une prédiction ni un conseil financier.</p>
+  </div>`;
+}
+
+/* ═══════════ Vue : Pépites (sélection de la semaine) ═══════════ */
+const PEPITES = { liste: null, filtre: "tout", semaine: null };
+async function vuePepites() {
+  const bmin = num(ETAT.reglages.budget_min) ?? 80, bmax = num(ETAT.reglages.budget_max) ?? 250;
+  $("#vue").innerHTML = `
+  <div class="titre-section" style="margin-top:4px"><h2>Pépites de la semaine</h2><span class="petit" id="pep-semaine"></span></div>
+  <p class="source" style="margin:-4px 2px 12px">Choisies chaque dimanche parmi ~1 000 cartes de dragons, légendaires et Pokémon iconiques (illustrations spéciales, dorées, secrètes, holos d’époque), dans ton budget de <b>${eur(bmin, true)} à ${eur(bmax, true)}</b> (<a href="#reglages">modifier</a>).</p>
+  <div class="chips" id="pep-filtres" style="margin-bottom:12px">${[["tout", "Toutes"], ["dragon", "Dragons"], ["legendaire", "Légendaires"], ["illus", "Illustrations spéciales"], ["vintage", "Anciennes"]].map(([k, n]) => `<button class="chip" data-f="${k}" aria-pressed="${PEPITES.filtre === k}">${n}</button>`).join("")}</div>
+  <div id="pep-liste" class="liste"><div class="vide"><span class="chargement"></span></div></div>
+  <div class="carte-ui" style="margin-top:18px"><h2 style="font-size:17px">Analyser n’importe quelle carte</h2><p class="source">Cherche-la, ouvre sa fiche puis « Analyser cette carte » : score, verdict, répartition des ventes PSA et rentabilité d’une gradation.</p><a class="btn" href="#recherche">Chercher une carte</a></div>
+  <p class="source" style="text-align:center;margin-top:16px">Indice de collectionneur, pas un conseil financier. Les prix passés ne garantissent pas les prix futurs.</p>`;
+  $$("#pep-filtres .chip").forEach(b => b.onclick = () => { PEPITES.filtre = b.dataset.f; $$("#pep-filtres .chip").forEach(x => x.setAttribute("aria-pressed", x === b)); dessinerPepites(); });
+  if (!PEPITES.liste) {
+    const { data, error } = await sb.from("selections").select("*").order("semaine", { ascending: false }).order("rang").limit(15);
+    if (error) { $("#pep-liste").innerHTML = `<div class="carte-ui vide">Sélection indisponible pour le moment.</div>`; return erreur(error, "Pépites"); }
+    PEPITES.liste = (data || []).filter(x => x.semaine === data[0]?.semaine);
+    PEPITES.semaine = data?.[0]?.semaine;
+    chargerIndex("fr").catch(() => {}); chargerIndex("en").catch(() => {});
+  }
+  if (ETAT.vue !== "pepites") return;
+  $("#pep-semaine").textContent = PEPITES.semaine ? "semaine du " + dateFr(PEPITES.semaine) : "";
+  dessinerPepites();
+}
+function dessinerPepites() {
+  const zone = $("#pep-liste"); if (!zone) return;
+  const f = PEPITES.filtre;
+  const l = (PEPITES.liste || []).filter(x => {
+    const a = x.resultat, especes = (a.especes || "").split(", ");
+    const dex = Object.entries(ESP.info).filter(([, v]) => especes.includes(v.fr)).map(([, v]) => v);
+    if (f === "dragon") return dex.some(v => v.dragon);
+    if (f === "legendaire") return dex.some(v => v.legendaire || v.fabuleux);
+    if (f === "illus") return /illustration|hyper|mega hyper/i.test(a.rarete || "");
+    if (f === "vintage") return a.date_sortie && new Date(a.date_sortie) < new Date(Date.now() - 8 * 365.25 * 864e5);
+    return true;
+  });
+  if (!PEPITES.liste?.length) { zone.innerHTML = `<div class="carte-ui vide">La première sélection arrive dimanche matin.</div>`; return; }
+  if (!l.length) { zone.innerHTML = `<div class="carte-ui vide">Aucune carte de cette catégorie cette semaine.</div>`; return; }
+  const possede = new Set(ETAT.cartes.filter(c => c.statut === "possedee").map(c => c.carte_id));
+  zone.innerHTML = l.map(x => {
+    const a = x.resultat, p = a.prix || {}, fr = INDEX.fr?.parId.get(x.carte_id);
+    const nom = fr?.nom || a.nom, sousNom = fr && fr.nom !== a.nom ? a.nom : "";
+    return `<button class="pepite" data-id="${esc(x.carte_id)}" data-l="${fr ? "fr" : x.langue}">
+      <span class="pep-rang">${x.rang}</span>
+      <span class="vignette pep-img">${visuel({ lang: "en", id: x.carte_id, image: a.image, petit: true })}</span>
+      <span class="pep-corps">
+        <span class="pep-nom">${esc(nom)}${possede.has(x.carte_id) ? ' <span class="puce vert">possédée</span>' : ""}</span>
+        <span class="pep-meta">${sousNom ? esc(sousNom) + " · " : ""}${esc(a.set_nom || "")}${a.date_sortie ? " (" + esc(String(a.date_sortie).slice(0, 4)) + ")" : ""} · ${esc(a.rarete || "")}</span>
+        <span class="pep-raisons">${(a.raisons || []).slice(0, 3).map(r => `<span>${esc(r)}</span>`).join("")}</span>
+        <span class="pep-prix"><b>${eur(p.brut)}</b>${p.psa10 != null ? ` · PSA 10 ${eur(p.psa10, true)}` : ""}${p.ventes_total != null ? ` · ${p.ventes_total} ventes` : ""}</span>
+      </span>
+      <span class="pep-score" style="--c:${couleurScore(x.score)}"><b>${x.score}</b><small>${esc(a.verdict || "")}</small></span>
+    </button>`;
+  }).join("");
+  $$(".pepite", zone).forEach(b => b.onclick = () => ouvrirFiche(b.dataset.l, b.dataset.id));
+}
+
 /* ═══════════ Vue : Collection ═══════════ */
 function vueCollection() {
   const F = ETAT.filtres, t = totaux();
   $("#vue").innerHTML = `
-  <div class="titre-section" style="margin-top:4px"><h2>Ma collection</h2><span class="petit"><b class="chiffre" style="color:var(--encre)">${eur(t.total, true)}</b> · ${t.nb} carte${t.nb > 1 ? "s" : ""}</span></div>
+  <div class="segment" style="margin-bottom:6px"><button aria-pressed="true">Possédées</button><button onclick="location.hash='#ventes'">Vendues</button></div>
+  <div class="titre-section" style="margin-top:12px"><h2>Ma collection</h2><span class="petit"><b class="chiffre" style="color:var(--encre)">${eur(t.total, true)}</b> · ${t.nb} carte${t.nb > 1 ? "s" : ""}</span></div>
   <div class="recherche" style="margin-bottom:10px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cq" type="search" placeholder="Filtrer ma collection" value="${esc(F.q)}" style="padding-right:16px"></div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center">
     <div class="chips">${[["tous", "Toutes"], ["brut", "Brutes"], ["gradee", "Gradées"]].map(([k, n]) => `<button class="chip" data-ft="${k}" aria-pressed="${F.type === k}">${n}</button>`).join("")}
@@ -1332,7 +1488,8 @@ function vueVentes() {
   const parMois = {};
   v.forEach(c => { const m = (c.date_vente || "").slice(0, 7) || "?"; (parMois[m] ||= []).push(c); });
   $("#vue").innerHTML = `
-  <div class="titre-section" style="margin-top:4px"><h2>Mes ventes</h2><span class="petit">${t.nbVendu} carte${t.nbVendu > 1 ? "s" : ""}</span></div>
+  <div class="segment" style="margin-bottom:6px"><button onclick="location.hash='#collection'">Possédées</button><button aria-pressed="true">Vendues</button></div>
+  <div class="titre-section" style="margin-top:12px"><h2>Mes ventes</h2><span class="petit">${t.nbVendu} carte${t.nbVendu > 1 ? "s" : ""}</span></div>
   <div class="carte-ui"><div class="kpis" style="margin-top:0">
     <div class="kpi"><span>Chiffre de ventes</span><b>${eur(t.ventes, true)}</b></div>
     <div class="kpi"><span>Frais</span><b>${eur(t.frais, true)}</b></div>
@@ -1356,6 +1513,15 @@ function vueReglages() {
   $("#vue").innerHTML = `
   <div class="titre-section" style="margin-top:4px"><h2>Réglages</h2></div>
   <div class="grille deux">
+    <form class="carte-ui grille" id="f-budget">
+      <div><h2 style="font-size:18px">Pépites de la semaine</h2><p class="source">Budget par carte pour la sélection du dimanche, et frais pour calculer la rentabilité d’une gradation.</p></div>
+      <div class="champs">
+        <label class="champ"><span>Budget mini (€)</span><input name="budget_min" inputmode="decimal" value="${num(ETAT.reglages.budget_min) ?? 80}"></label>
+        <label class="champ"><span>Budget maxi (€)</span><input name="budget_max" inputmode="decimal" value="${num(ETAT.reglages.budget_max) ?? 250}"></label>
+        <label class="champ large"><span>Frais de gradation + envois (€ par carte)</span><input name="frais_gradation" inputmode="decimal" value="${num(ETAT.reglages.frais_gradation) ?? 50}"></label>
+      </div>
+      <button class="btn principal" type="submit">Enregistrer</button>
+    </form>
     <form class="carte-ui grille" id="f-coefs">
       <div><h2 style="font-size:18px">Valeur des cartes brutes selon l’état</h2><p class="source">La cote Cardmarket correspond surtout à des cartes en bon état. Pourcentage de la cote retenu pour chaque état :</p></div>
       <div class="champs">${Object.keys(ETATS).map(k => `<label class="champ"><span>${k} · ${ETATS_FR[k]}</span><input name="${k}" inputmode="numeric" value="${Math.round(co[k] * 100)}" aria-label="${k} en pourcentage"></label>`).join("")}</div>
@@ -1378,6 +1544,14 @@ function vueReglages() {
       </div>
     </div>
   </div>`;
+  $("#f-budget").onsubmit = async e => {
+    e.preventDefault();
+    const v = { budget_min: num(e.target.budget_min.value), budget_max: num(e.target.budget_max.value), frais_gradation: num(e.target.frais_gradation.value) };
+    if (v.budget_min == null || v.budget_max == null || v.budget_min < 0 || v.budget_max <= v.budget_min) return toast("Budget invalide : le maxi doit dépasser le mini.");
+    if (v.frais_gradation == null || v.frais_gradation < 0) return toast("Frais invalides.");
+    const { error } = await sb.from("reglages").upsert({ coefs: ETAT.reglages.coefs || COEFS_DEFAUT, ...v }); if (error) return erreur(error, "Réglages");
+    Object.assign(ETAT.reglages, v); toast("Enregistré : la sélection de dimanche suivra ce budget");
+  };
   $("#f-coefs").onsubmit = async e => {
     e.preventDefault();
     const coefs = {}; for (const k of Object.keys(ETATS)) { const v = num(e.target[k].value); if (v == null || v < 0 || v > 200) return toast(`Valeur invalide pour ${k}`); coefs[k] = Math.round(v) / 100; }
