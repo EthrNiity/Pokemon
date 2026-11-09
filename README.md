@@ -9,9 +9,9 @@ En ligne : https://ethrniity.github.io/Pokemon/ (installable sur le téléphone 
 | Écran | Contenu |
 |---|---|
 | **Récap** | Valeur totale (brutes + gradées), prix d’achat, plus-value latente, courbe de la valeur, plus belles cartes, ventes, répartition par langue, cartes suivies |
-| **Chercher** | Recherche dans toutes les cartes FR, EN et JP : sans accents, tolère les fautes, `4/102` pour le numéro imprimé, mots du nom de série, `fr` / `en` / `jp` |
+| **Chercher** | Recherche dans toutes les cartes FR, EN et JP : sans accents, tolère les fautes, `4/102` pour le numéro imprimé, mots du nom de série, `fr` / `en` / `jp`. Les noms de Pokémon marchent dans toutes les langues (« artikodin » trouve aussi Articuno et フリーザー), les séries japonaises anciennes répondent à leur nom français/anglais (« fossile »), et le n° du Pokédex imprimé sur les anciennes japonaises est reconnu (« artikodin jp fossil 144 ») |
 | **Fiche** | Cote Cardmarket (tendance, moyennes 1/7/30 j, plus bas, reverse), TCGplayer, courbe de prix, liens Cardmarket et ventes eBay, ajout, suivi |
-| **Scanner** | 1. photo dans un cadre (ou depuis la galerie) · 2. centrage gauche/droite et haut/bas, recto et verso, lignes réglables avec loupe · 3. coins, bords, surface et note PSA estimée · 4. lecture du numéro imprimé et choix de la carte |
+| **Scanner** | 1. photo dans un cadre : toucher pour la mise au point (Android/Chrome), zoom, photo pleine résolution, alerte si floue ; ou l’appareil photo du téléphone (le plus fiable sur iPhone) · 2. centrage gauche/droite et haut/bas, recto et verso, lignes réglables avec loupe · 3. coins, bords, surface et note PSA estimée · 4. lecture du numéro imprimé et choix de la carte |
 | **Collection** | Filtres (brutes, gradées, langue), tri (valeur, plus-value, série…), modification, vente totale ou partielle |
 | **Ventes** | Chiffre de ventes, frais, bénéfice net, détail par mois |
 | **Réglages** | Coefficients de valeur selon l’état, export JSON et CSV, compte |
@@ -32,6 +32,8 @@ En ligne : https://ethrniity.github.io/Pokemon/ (installable sur le téléphone 
 ## Limites connues
 
 - Le centrage se mesure sur les cartes avec bordure ; les full art n’en ont pas. Coins, bords et surface sont évalués par toi : la note est une estimation, pas une gradation.
+- Images : TCGdex ne liste qu’une partie des images (surtout en japonais). L’appli essaie l’adresse reconstruite, puis la même carte dans l’autre langue (mention « visuel EN »), puis ta photo du scan, puis un visuel neutre. Les anciennes séries japonaises (Fossile, Neo…) n’ont pas d’images chez TCGdex : le visuel de la carte anglaise équivalente est affiché.
+- Noms des Pokémon en FR/EN/JA : `noms.json`, tiré de PokeAPI.
 - La lecture automatique repose sur le numéro imprimé (`025/198`). Les numéros avec lettres (`TG05/TG30`, promos) se cherchent à la main.
 - Les cartes japonaises ont leur nom en japonais : cherche-les par numéro (`25/165 jp`).
 - La cote Cardmarket mélange les états et, pour une même impression, les langues FR et EN.

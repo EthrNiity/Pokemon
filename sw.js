@@ -1,7 +1,7 @@
 // Holo Cote : l'appli s'ouvre même hors connexion (la dernière version vue est gardée).
 // Les données (cotes, collection) viennent toujours du réseau.
-const CACHE = "holo-cote-v1";
-const COQUILLE = ["./", "./index.html", "./manifest.webmanifest", "./icone-192.png", "./icone-512.png"];
+const CACHE = "holo-cote-v2";
+const COQUILLE = ["./", "./index.html", "./noms.json", "./manifest.webmanifest", "./icone-192.png", "./icone-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(COQUILLE)).then(() => self.skipWaiting()));

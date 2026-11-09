@@ -117,6 +117,8 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .champ input:focus,.champ select:focus,.champ textarea:focus,.recherche input:focus{outline:2px solid color-mix(in srgb,var(--bleu) 55%,transparent);outline-offset:1px}
 .champs{display:grid;gap:12px;grid-template-columns:1fr 1fr}
 .champs .large{grid-column:1/-1}
+.choix-photo{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:600;color:var(--doux)}
+.choix-photo input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--accent);flex:none}
 .segment{display:flex;background:var(--papier2);border-radius:13px;padding:4px;gap:4px}
 .segment button{flex:1;border:0;background:transparent;border-radius:10px;padding:9px 8px;font-weight:800;color:var(--doux);font-size:14.5px}
 .segment button[aria-pressed="true"]{background:var(--papier);color:var(--encre);box-shadow:var(--ombre)}
@@ -166,8 +168,8 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .liste{display:grid;gap:8px}
 .ligne{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 12px 8px 8px;background:var(--papier);border:1px solid var(--trait);border-radius:15px;text-align:left;width:100%;color:inherit}
 .ligne:hover{border-color:color-mix(in srgb,var(--bleu) 45%,var(--trait))}
-.vignette{width:52px;aspect-ratio:63/88;border-radius:5px;background:var(--papier2) center/cover;box-shadow:0 1px 3px rgb(0 0 0/.18);overflow:hidden}
-.vignette img{width:100%;height:100%;object-fit:cover;display:block}
+.vignette{position:relative;width:52px;aspect-ratio:63/88;border-radius:5px;background:var(--papier2);box-shadow:0 1px 3px rgb(0 0 0/.18);overflow:hidden;flex:none}
+.vignette>img,.tuile .img>img,.fiche .grande>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1}
 .ligne .nom{font-weight:800;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ligne .meta{font-size:13px;color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px;align-items:center;margin-top:2px}
 .ligne .droite{text-align:right}
@@ -179,17 +181,28 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .tuile .img{position:relative;aspect-ratio:63/88;border-radius:9px;overflow:hidden;background:var(--papier2);box-shadow:0 2px 8px -2px rgb(0 0 0/.25);transition:transform .2s}
 .tuile:hover .img{transform:translateY(-3px) rotate(-.6deg)}
 .tuile .img img{width:100%;height:100%;object-fit:cover;display:block}
-.tuile .img .sans{position:absolute;inset:0;display:grid;place-items:center;padding:10px;text-align:center;font-family:var(--f-titre);color:var(--doux);font-size:15px}
-.tuile .img .marques{position:absolute;left:6px;top:6px;display:flex;gap:4px}
+/* Visuel neutre quand aucune image n'existe */
+.sans{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12%;text-align:center;
+  background:linear-gradient(var(--papier),var(--papier)) padding-box,var(--holo) border-box;border:5px solid transparent;border-radius:inherit;color:var(--doux)}
+.sans.petit{border-width:2px;padding:0}
+.visuel-autre{position:absolute;z-index:2;right:6px;bottom:6px;background:rgb(20 16 40/.72);color:#fff;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;letter-spacing:.02em}
+.sans.petit svg{width:58%;height:58%;opacity:.55}
+.sans-nom{font-family:var(--f-titre);font-weight:600;font-size:16px;line-height:1.15;color:var(--encre)}
+.sans-meta{font-size:12px;line-height:1.25}
+.sans-note{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.7;margin-top:4px}
+.fiche .grande .sans-nom{font-size:24px}.fiche .grande .sans-meta{font-size:14px}
+.tuile .img .marques{position:absolute;left:6px;top:6px;display:flex;gap:4px;z-index:2}
 .tuile .img .marques .puce{background:var(--papier);box-shadow:0 1px 4px rgb(0 0 0/.25)}
-.tuile .img .possede{position:absolute;right:6px;top:6px;background:var(--vert);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:2px 7px}
+.tuile .img .possede{position:absolute;z-index:2;right:6px;top:6px;background:var(--vert);color:#fff;border-radius:999px;font-size:11px;font-weight:800;padding:2px 7px}
 .tuile .t-nom{font-weight:800;font-size:14.5px;line-height:1.2}
+.tuile .t-fr{font-size:12.5px;font-weight:700;color:var(--bleu);line-height:1.2}
 .tuile .t-meta{font-size:12.5px;color:var(--doux);line-height:1.25}
 
 /* ───── Recherche ───── */
 .recherche{position:relative}
 .recherche input{width:100%;border:1px solid var(--trait);background:var(--papier);border-radius:16px;padding:15px 48px 15px 48px;font-size:17px;box-shadow:var(--ombre)}
 .recherche>svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:21px;height:21px;color:var(--doux)}
+.recherche input::-webkit-search-cancel-button{display:none;-webkit-appearance:none}
 .recherche .effacer{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--doux);width:36px;height:36px;border-radius:10px}
 .aide-recherche{font-size:13px;color:var(--doux);margin:8px 4px 0}
 .aide-recherche code{font-family:var(--f-chiffre);font-size:12px;background:var(--papier2);padding:1px 5px;border-radius:5px}
@@ -212,8 +225,8 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 @media (min-width:800px){.fiche{grid-template-columns:300px 1fr;align-items:start}}
 .fiche .grande{position:relative;aspect-ratio:63/88;border-radius:14px;overflow:hidden;background:var(--papier2);box-shadow:0 14px 30px -12px rgb(0 0 0/.5);max-width:min(240px,62vw);width:100%;margin:0 auto}
 @media (min-width:800px){.fiche .grande{max-width:320px}}
-.fiche .grande img{width:100%;height:100%;object-fit:cover;display:block}
-.fiche .grande::after{content:"";position:absolute;inset:0;background:var(--holo);mix-blend-mode:color-dodge;opacity:0;transition:opacity .3s;background-size:250% 250%;pointer-events:none}
+
+.fiche .grande::after{content:"";position:absolute;inset:0;z-index:2;background:var(--holo);mix-blend-mode:color-dodge;opacity:0;transition:opacity .3s;background-size:250% 250%;pointer-events:none}
 .fiche .grande:hover::after{opacity:.22;animation:moire 3s linear infinite}
 .fiche h3{font-size:24px;line-height:1.15}
 .fiche .sous{color:var(--doux);font-size:14.5px;margin-top:3px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -230,8 +243,17 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 /* ───── Scan ───── */
 .scan-zone{position:relative;background:#000;border-radius:20px;overflow:hidden;aspect-ratio:3/4;max-height:68vh;margin:0 auto;width:100%;max-width:520px}
 .scan-zone video{width:100%;height:100%;object-fit:cover;display:block}
-.scan-zone .guide{position:absolute;left:50%;top:50%;height:84%;aspect-ratio:63/88;transform:translate(-50%,-50%);border-radius:14px;box-shadow:0 0 0 9999px rgb(0 0 0/.45);outline:2px dashed rgb(255 255 255/.85);outline-offset:0}
-.scan-zone .guide::after{content:"Cadre la carte ici, bien à plat";position:absolute;left:0;right:0;bottom:-30px;text-align:center;color:#fff;font-weight:700;font-size:14px}
+.scan-zone .guide{position:absolute;left:50%;top:46%;height:62%;aspect-ratio:63/88;transform:translate(-50%,-50%);border-radius:12px;box-shadow:0 0 0 9999px rgb(0 0 0/.42);outline:2px dashed rgb(255 255 255/.85);outline-offset:0;pointer-events:none}
+.guide-aide{position:absolute;left:-30%;right:-30%;top:-34px;text-align:center;color:#fff;font-weight:700;font-size:13.5px;text-shadow:0 1px 3px rgb(0 0 0/.6)}
+.anneau{position:absolute;width:74px;height:74px;margin:-37px 0 0 -37px;border:2.5px solid var(--or);border-radius:50%;pointer-events:none;opacity:0}
+.anneau.ok{animation:point .9s ease-out}
+@keyframes point{0%{transform:scale(1.5);opacity:0}25%{transform:scale(1);opacity:1}75%{opacity:1}100%{opacity:0}}
+.zoom{position:absolute;left:14px;right:14px;top:12px;display:flex;align-items:center;gap:10px;color:#fff;font-weight:800;font-size:13px;background:rgb(0 0 0/.45);border-radius:999px;padding:6px 12px}
+.zoom input{flex:1;accent-color:var(--or)}
+.obturateur.occupe{animation:tour 1s linear infinite;border-style:dashed}
+.scan-natif{max-width:520px;margin:12px auto 0;text-align:center}
+.scan-natif .source{margin:6px 0 0}
+.alerte-flou{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--or) 18%,var(--papier));border:1px solid color-mix(in srgb,var(--or) 50%,var(--trait));font-weight:700;font-size:14.5px;margin-bottom:12px}
 .scan-zone .coin{position:absolute;width:26px;height:26px;border:4px solid var(--or)}
 .scan-zone .ctl{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;align-items:center;gap:22px}
 .obturateur{width:72px;height:72px;border-radius:50%;border:5px solid #fff;background:var(--accent);box-shadow:0 0 0 3px rgb(0 0 0/.25)}
@@ -344,7 +366,7 @@ function erreur(e, quoi) {
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return toast("Pas de connexion internet pour le moment.", 4000);
   toast((quoi ? quoi + " : " : "") + m.slice(0, 140), 5000);
 }
-function imgCarte(url, taille = "low") { return url ? `${url}/${taille}.webp` : ""; }
+
 
 /* ───── Thème ───── */
 (function () {
@@ -384,37 +406,171 @@ async function api(lang, chemin) {
 const INDEX = { fr: null, en: null, ja: null };
 const EN_COURS = {};
 function norm(s) {
-  return String(s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase()
-    .replace(/[’'`´]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  return String(s || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").normalize("NFC").toLowerCase()
+    .replace(/[’'`´]/g, "").replace(/[^\p{L}\p{N}\p{M}]+/gu, " ").trim();
 }
-function preparerIndex(lang, cartes, sets) {
+/* ═══════════ Noms des Pokémon en français, anglais et japonais (PokeAPI, noms.json) ═══════════
+   Sert à retrouver « Artikodin » parmi les cartes « Articuno » et « フリーザー », et l'inverse. */
+const ESP = { pret: null, parNom: new Map(), noms: [], ja: new Map(), info: {} };
+const normJa = s => norm(s).replace(/ /g, "");
+function chargerEspeces() {
+  return ESP.pret ||= fetch("noms.json").then(r => { if (!r.ok) throw new Error("noms.json " + r.status); return r.json(); }).then(d => {
+    for (const [dex, fr, en, ja] of d.especes) {
+      ESP.info[dex] = { fr, en, ja };
+      for (const nm of [fr, en]) { const n = norm(nm); if (!n) continue; if (!ESP.parNom.has(n)) ESP.parNom.set(n, dex); ESP.noms.push([n, dex]); }
+      if (ja) {
+        const j = normJa(ja); if (!ESP.parNom.has(j)) ESP.parNom.set(j, dex); ESP.noms.push([j, dex]);
+        if (!ESP.ja.has(j[0])) ESP.ja.set(j[0], []); ESP.ja.get(j[0]).push([j, dex]);
+      }
+    }
+    ESP.ja.forEach(l => l.sort((a, b) => b[0].length - a[0].length));
+  }).catch(e => { ESP.pret = null; throw e; });
+}
+/* Numéros de Pokédex présents dans le nom d'une carte (« ロケット団のフリーザー » → 144, « Pikachu V » → 25). */
+function dexDeCarte(lang, n, mots) {
+  const out = [], ajouter = d => { if (d && !out.includes(d)) out.push(d); };
+  if (!ESP.noms.length) return out;
+  // Noms en lettres latines (cartes FR/EN, et quelques cartes japonaises nommées en anglais)
+  for (let i = 0; i < mots.length; i++) {
+    if (!/[a-z]/.test(mots[i])) continue;
+    const deux = i + 1 < mots.length ? ESP.parNom.get(mots[i] + " " + mots[i + 1]) : undefined;
+    if (deux) { ajouter(deux); i++; continue; }
+    ajouter(ESP.parNom.get(mots[i]));
+  }
+  // Noms japonais : pas d'espaces, on cherche les noms d'espèces dans le texte (le plus long d'abord)
+  if (lang === "ja") {
+    const s = n.replace(/ /g, "");
+    for (let i = 0; i < s.length; i++) {
+      const cands = ESP.ja.get(s[i]); if (!cands) continue;
+      for (const [nm, dex] of cands) if (nm.length >= 2 && s.startsWith(nm, i)) { ajouter(dex); i += nm.length - 1; break; }
+    }
+  }
+  return out;
+}
+
+/* Séries japonaises : leurs noms sont en japonais, on leur ajoute les noms français et anglais des séries équivalentes. */
+const MOTS_SETS_JA = {
+  PMCG1: "set de base base set expansion pack", PMCG2: "jungle", PMCG3: "fossile fossil", PMCG4: "team rocket equipe rocket",
+  PMCG5: "gym heroes leaders stadium", PMCG6: "gym challenge", neo1: "neo genesis", neo2: "neo discovery", neo3: "neo revelation",
+  neo4: "neo destiny", VS1: "vs", web1: "web", E1: "expedition", E2: "aquapolis", E3: "aquapolis", E4: "skyridge", E5: "skyridge"
+};
+const MOTS_SERIES_JA = {
+  PMCG: "wizards", neo: "neo", e: "e card ecard", ADV: "ex", PCG: "ex", L: "heartgold soulsilver hgss legend", BW: "noir blanc black white",
+  XY: "xy", XYb: "xy break", SM: "soleil lune sun moon", S: "epee bouclier sword shield swsh", SV: "ecarlate violet scarlet violet", M: "mega"
+};
+/* Anciennes séries japonaises : pas de numéro de collection imprimé, mais le n° du Pokédex (ex. Artikodin « No.144 »). */
+const SANS_NUMERO = /^(PMCG\d|neo\d)/;
+
+function preparerIndex(lang, cartes, sets, series) {
   const parSet = {};
-  sets.forEach((s, i) => { parSet[s.id] = { id: s.id, nom: s.name, n: norm(s.name), off: s.cardCount?.official ?? null, tot: s.cardCount?.total ?? null, rang: i, logo: s.logo || s.symbol || "" }; });
+  sets.forEach((s, i) => { parSet[s.id] = { id: s.id, nom: s.name, k: norm(s.name + " " + s.id), off: s.cardCount?.official ?? null, tot: s.cardCount?.total ?? null, rang: i }; });
   const liste = cartes.map(c => {
     const i = c.id.lastIndexOf("-"), set = c.id.slice(0, i);
-    const n = norm(c.name);
-    return { id: c.id, lang, local: c.localId, num: /^\d+$/.test(c.localId) ? parseInt(c.localId, 10) : null, nom: c.name, n, mots: n.split(" "), set, img: c.image || "" };
+    const n = norm(c.name), mots = n.split(" ");
+    return { id: c.id, lang, local: c.localId, num: /^\d+$/.test(c.localId) ? parseInt(c.localId, 10) : null, nom: c.name, n, mots, set, img: c.image || "", dex: dexDeCarte(lang, n, mots) };
   });
-  return { cartes: liste, sets: parSet, setsListe: Object.values(parSet) };
+  return { cartes: liste, parId: new Map(liste.map(c => [c.id, c])), sets: parSet, setsListe: Object.values(parSet), series: series || {} };
+}
+/* Mots-clés de recherche des séries : nom dans l'autre langue (même identifiant en FR et EN), équivalents des séries japonaises. */
+function enrichirSets() {
+  for (const l of ["fr", "en", "ja"]) {
+    const ix = INDEX[l]; if (!ix) continue;
+    for (const s of ix.setsListe) {
+      let k = s.nom + " " + s.id;
+      if (l !== "ja") { const autre = INDEX[l === "fr" ? "en" : "fr"]?.sets[s.id]; if (autre) k += " " + autre.nom; }
+      else k += " " + (MOTS_SETS_JA[s.id] || "") + " " + (MOTS_SERIES_JA[ix.series[s.id]] || "");
+      s.k = norm(k);
+    }
+  }
+}
+/* Série de chaque set (pour reconstruire l'adresse des images que TCGdex ne liste pas). */
+async function seriesDe(lang, cartes, sets) {
+  const m = {};
+  for (const c of cartes) if (c.image) { const p = c.image.split("/"); m[p[p.length - 2]] = p[p.length - 3]; }
+  if (sets.some(s => !m[s.id])) {
+    try {
+      const ls = await api(lang, "series");
+      const det = await Promise.all(ls.map(x => api(lang, "series/" + encodeURIComponent(x.id)).catch(() => null)));
+      det.forEach(d => d?.sets?.forEach(s => { if (!m[s.id]) m[s.id] = d.id; }));
+    } catch (e) { /* les images listées suffiront */ }
+  }
+  return m;
 }
 async function chargerIndex(lang, surProgression) {
   if (INDEX[lang]) return INDEX[lang];
   if (EN_COURS[lang]) return EN_COURS[lang];
   EN_COURS[lang] = (async () => {
-    const cache = await IDB.lire("index-" + lang);
-    if (cache && Date.now() - cache.t < 5 * 864e5) { INDEX[lang] = preparerIndex(lang, cache.cartes, cache.sets); return INDEX[lang]; }
+    await chargerEspeces().catch(() => {});
+    const cle = "index3-" + lang, cache = await IDB.lire(cle);
+    if (cache && Date.now() - cache.t < 5 * 864e5) { INDEX[lang] = preparerIndex(lang, cache.cartes, cache.sets, cache.series); enrichirSets(); return INDEX[lang]; }
     surProgression?.(lang);
     try {
       const [cartes, sets] = await Promise.all([api(lang, "cards"), api(lang, "sets")]);
-      IDB.ecrire("index-" + lang, { t: Date.now(), cartes, sets });
-      INDEX[lang] = preparerIndex(lang, cartes, sets);
+      const series = await seriesDe(lang, cartes, sets);
+      IDB.ecrire(cle, { t: Date.now(), cartes, sets, series });
+      INDEX[lang] = preparerIndex(lang, cartes, sets, series);
     } catch (e) {
-      if (cache) INDEX[lang] = preparerIndex(lang, cache.cartes, cache.sets); else throw e;
+      if (cache) INDEX[lang] = preparerIndex(lang, cache.cartes, cache.sets, cache.series); else throw e;
     }
+    enrichirSets();
     return INDEX[lang];
   })();
   try { return await EN_COURS[lang]; } finally { delete EN_COURS[lang]; }
 }
+
+/* ═══════════ Images ═══════════
+   TCGdex ne liste qu'une partie des images (surtout en japonais) alors que beaucoup existent :
+   on essaie dans l'ordre l'image connue, l'adresse reconstruite, la même carte dans l'autre langue, ta photo, puis un visuel neutre. */
+const ASSETS = "https://assets.tcgdex.net";
+/* Anciennes séries japonaises sans images chez TCGdex → série anglaise équivalente (même illustration, texte anglais). */
+const JA_VERS_EN = { PMCG1: "base1", PMCG2: "base2", PMCG3: "base3", PMCG4: "base5", PMCG5: "gym1", PMCG6: "gym2",
+  neo1: "neo1", neo2: "neo2", neo3: "neo3", neo4: "neo4", E1: "ecard1", E2: "ecard2", E3: "ecard2", E4: "ecard3", E5: "ecard3" };
+function sourcesImage(lang, id, image) {
+  const out = [], add = u => { if (u && !out.includes(u)) out.push(u); };
+  const decoupe = x => { const i = x.lastIndexOf("-"); return [x.slice(0, i), x.slice(i + 1)]; };
+  const chemin = (l, cid) => {
+    const [set, local] = decoupe(cid);
+    const s = INDEX[l]?.series?.[set] || (l !== "ja" ? INDEX.en?.series?.[set] || INDEX.fr?.series?.[set] : null);
+    return s ? `${ASSETS}/${l}/${s}/${set}/${local}` : null;
+  };
+  add(image); add(chemin(lang, id));
+  if (lang === "fr") add(chemin("en", id)); else if (lang === "en") add(chemin("fr", id));
+  else {
+    const [set] = decoupe(id), c = INDEX.ja?.parId.get(id), enSet = JA_VERS_EN[set];
+    if (enSet && c?.dex.length && INDEX.en) {
+      // Même Pokémon dans la série anglaise équivalente ; les holos (petits numéros) d'abord
+      const eq = INDEX.en.cartes.filter(x => x.set === enSet && x.dex.length && x.dex.every(d => c.dex.includes(d))).sort((a, b) => (a.num ?? 999) - (b.num ?? 999));
+      eq.slice(0, 2).forEach(x => add(x.img || chemin("en", x.id)));
+    }
+  }
+  return out;
+}
+/* Visuel d'une carte : cadre neutre (nom, série, numéro) recouvert par la première image qui se charge. */
+function visuel({ lang, id, image, photo, nom, meta, taille = "low", petit = false }) {
+  const srcs = sourcesImage(lang, id, image).map(u => `${u}/${taille}.webp`);
+  if (photo) srcs.push(photo);
+  const fond = petit
+    ? `<span class="sans petit" aria-hidden="true">${icone.cartes}</span>`
+    : `<span class="sans"><span class="sans-nom">${esc(nom || "")}</span>${meta ? `<span class="sans-meta">${esc(meta)}</span>` : ""}<span class="sans-note">Visuel indisponible</span></span>`;
+  return fond + (srcs.length ? `<img loading="lazy" alt="${esc(nom || "")}" src="${esc(srcs[0])}" data-lang="${esc(lang)}" data-suite="${esc(JSON.stringify(srcs.slice(1)))}" onerror="imgSuivante(this)" onload="imgChargee(this)">` : "");
+}
+/* Visuel venu d'une autre langue : petite mention sur l'image (« visuel EN »). */
+window.imgChargee = el => {
+  const m = el.src.match(/assets\.tcgdex\.net\/(fr|en|ja)\//), l = m?.[1];
+  const conteneur = el.parentElement; if (!conteneur) return;
+  conteneur.querySelector(".visuel-autre")?.remove();
+  if (l && l !== el.dataset.lang && !conteneur.classList.contains("vignette")) conteneur.insertAdjacentHTML("beforeend", `<span class="visuel-autre">visuel ${COURT[l]}</span>`);
+  else if (!m && el.src.includes("pokemon-photos") && !conteneur.classList.contains("vignette")) conteneur.insertAdjacentHTML("beforeend", `<span class="visuel-autre">ma photo</span>`);
+};
+/* Nom français du Pokémon d'une carte anglaise ou japonaise (« フリーザー » → Artikodin). */
+function nomFr(c) {
+  if (c.lang === "fr" || !c.dex?.length) return "";
+  return c.dex.map(d => ESP.info[d]?.fr).filter(Boolean).join(", ");
+}
+window.imgSuivante = el => {
+  let suite = []; try { suite = JSON.parse(el.dataset.suite || "[]"); } catch (e) {}
+  if (suite.length) { el.dataset.suite = JSON.stringify(suite.slice(1)); el.src = suite[0]; } else el.remove();
+};
 
 /* ═══════════ Recherche intelligente ═══════════
    - sans accents ni majuscules, tolère les fautes de frappe (1 ou 2 lettres)
@@ -429,8 +585,10 @@ function analyserRequete(q) {
   if (m) { r.num = parseInt(m[1], 10); r.denom = parseInt(m[2], 10); t = t.replace(m[0], " "); }
   norm(t).split(" ").filter(Boolean).forEach(w => {
     if (MOTS_LANGUE[w] && !r.langue) r.langue = MOTS_LANGUE[w];
-    else r.mots.push(w.replace(/^#/, ""));
+    else r.mots.push(w.replace(/^#/, "").replace(/^n[o°]?(\d+)$/, "$1"));
   });
+  // Noms d'espèces en deux mots (« m mime », « type null ») gardés ensemble
+  for (let i = 0; i + 1 < r.mots.length; i++) if (ESP.parNom.has(r.mots[i] + " " + r.mots[i + 1])) { r.mots.splice(i, 2, r.mots[i] + " " + r.mots[i + 1]); }
   return r;
 }
 function distance(a, b, max) {
@@ -447,12 +605,22 @@ function distance(a, b, max) {
   }
   return prec[b.length];
 }
+/* Espèces désignées par un mot de la recherche, dans n'importe quelle langue (exact, début de nom, faute de frappe). */
+function dexPourMot(w) {
+  if (!ESP.noms.length || /^\d+$/.test(w) || w.length < 3) return null;
+  const ex = ESP.parNom.get(w) ?? ESP.parNom.get(w.replace(/ /g, ""));
+  if (ex) return { set: new Set([ex]), exact: true };
+  const s = new Set();
+  if (w.length >= 4) for (const [n, d] of ESP.noms) if (n.startsWith(w)) s.add(d);
+  if (!s.size && w.length >= 5) { const max = w.length >= 8 ? 2 : 1; for (const [n, d] of ESP.noms) if (n[0] === w[0] && distance(w, n, max) <= max) s.add(d); }
+  return s.size && s.size <= 40 ? { set: s, exact: false } : null;
+}
 function scoreMot(w, c, set) {
   if (c.mots.includes(w)) return 30;
   if (c.mots.some(x => x.startsWith(w))) return w.length >= 2 ? 22 : 8;
   if (w.length >= 3 && c.n.includes(w)) return 15;
-  if (set && (set.id.toLowerCase() === w || set.n.split(" ").includes(w))) return 14;
-  if (set && w.length >= 3 && set.n.split(" ").some(x => x.startsWith(w))) return 11;
+  if (set && (set.id.toLowerCase() === w || set.k.split(" ").includes(w))) return 14;
+  if (set && w.length >= 3 && set.k.split(" ").some(x => x.startsWith(w))) return 11;
   if (/^\d+$/.test(w) && c.num === parseInt(w, 10)) return 16;
   if (w.length >= 4) {
     const max = w.length >= 7 ? 2 : 1;
@@ -465,6 +633,7 @@ function rechercher(q, langues, limite = 400) {
   const langs = r.langue ? [r.langue] : langues;
   if (!r.mots.length && r.num == null) return { r, res: [] };
   const possedees = new Set(ETAT.cartes.filter(c => c.statut === "possedee").map(c => c.langue + ":" + c.carte_id));
+  const especes = r.mots.map(dexPourMot);
   const res = [];
   for (const l of langs) {
     const ix = INDEX[l]; if (!ix) continue;
@@ -477,7 +646,14 @@ function rechercher(q, langues, limite = 400) {
         if (r.denom != null && set) s += (set.off === r.denom || set.tot === r.denom) ? 30 : -12;
       }
       let ok = true;
-      for (const w of r.mots) { const v = scoreMot(w, c, set); if (!v) { ok = false; break; } s += v; }
+      for (let k = 0; k < r.mots.length; k++) {
+        const w = r.mots[k], e = especes[k];
+        let v = scoreMot(w, c, set);
+        if (e && c.dex.some(x => e.set.has(x))) v = Math.max(v, e.exact ? 28 : 20);
+        if (!v && /^\d+$/.test(w) && c.lang === "ja" && SANS_NUMERO.test(c.set) && c.dex.includes(+w)) v = 18;
+        if (!v) { ok = false; break; }
+        s += v;
+      }
       if (!ok) continue;
       if (r.mots.length && c.n === r.mots.join(" ")) s += 12;
       if (possedees.has(l + ":" + c.id)) s += 4;
@@ -506,7 +682,33 @@ async function chargerDonnees() {
   ETAT.suivis = s.data || [];
   ETAT.valeurs = v.data || [];
   ETAT.reglages = g.data || { coefs: { ...COEFS_DEFAUT } };
+  const photos = [...new Set(ETAT.cartes.map(x => x.photo).filter(Boolean))];
+  if (photos.length) {
+    try {
+      const { data } = await sb.storage.from("pokemon-photos").createSignedUrls(photos, 7 * 86400);
+      const urls = new Map((data || []).filter(x => x.signedUrl).map(x => [x.path, x.signedUrl]));
+      ETAT.cartes.forEach(x => { if (x.photo) x.photo_url = urls.get(x.photo) || null; });
+    } catch (e) { /* les visuels TCGdex suffisent */ }
+  }
   ETAT.charge = true;
+}
+/* Photo de la carte prise au scan : recadrée sur la carte, 700 px de haut, JPEG. */
+function photoDuScan() {
+  const S = Scan, ph = S.photos?.recto, m = S.mesures?.recto?.ext;
+  if (!ph || !m) return null;
+  const w = m.d - m.g, h = m.b - m.h; if (w < 40 || h < 40) return null;
+  const ech = Math.min(1, 700 / h), c = document.createElement("canvas");
+  c.width = Math.round(w * ech); c.height = Math.round(h * ech);
+  c.getContext("2d").drawImage(ph, m.g, m.h, w, h, 0, 0, c.width, c.height);
+  return c;
+}
+async function envoyerPhoto(canvas) {
+  const blob = await new Promise(ok => canvas.toBlob(ok, "image/jpeg", .86));
+  if (!blob) return null;
+  const chemin = `${ETAT.session.user.id}/${crypto.randomUUID()}.jpg`;
+  const { error } = await sb.storage.from("pokemon-photos").upload(chemin, blob, { contentType: "image/jpeg", upsert: false });
+  if (error) throw error;
+  return chemin;
 }
 /* Cotes à rafraîchir : cartes jamais relevées ou relevées il y a plus de 2 jours (le relevé de nuit s'occupe du reste). */
 async function rafraichirCotesAnciennes() {
@@ -635,7 +837,7 @@ function totaux() {
 function ligneCarte(c, droite) {
   const badge = c.type === "gradee" ? `<span class="puce gradee">${esc(c.gradeur || "Gradée")} ${c.note != null ? esc(String(c.note).replace(".0", "")) : ""}</span>` : `<span class="puce">${esc(c.etat || "NM")}</span>`;
   return `<button class="ligne" data-ouvrir="${esc(c.id)}">
-    <span class="vignette">${c.image ? `<img loading="lazy" alt="" src="${esc(imgCarte(c.image))}">` : ""}</span>
+    <span class="vignette">${visuel({ lang: c.langue, id: c.carte_id, image: c.image, photo: c.photo_url, petit: true })}</span>
     <span style="min-width:0"><span class="nom">${esc(c.nom)}${c.quantite > 1 ? ` <span class="puce">×${c.quantite}</span>` : ""}</span>
       <span class="meta"><span class="puce ${c.langue}">${COURT[c.langue]}</span>${badge}<span>${esc(c.set_nom || "")} · ${esc(c.numero || "")}</span></span></span>
     <span class="droite">${droite}</span></button>`;
@@ -707,7 +909,7 @@ function vueRecap() {
 }
 function tuileSuivi(s) {
   return `<button class="tuile" data-suivi="${esc(s.carte_id)}" data-lang="${esc(s.langue)}">
-    <span class="img">${s.image ? `<img loading="lazy" alt="" src="${esc(imgCarte(s.image))}">` : `<span class="sans">${esc(s.nom)}</span>`}<span class="marques"><span class="puce ${s.langue}">${COURT[s.langue]}</span></span></span>
+    <span class="img">${visuel({ lang: s.langue, id: s.carte_id, image: s.image, nom: s.nom, meta: `${s.set_nom || ""} · ${s.numero || ""}` })}<span class="marques"><span class="puce ${s.langue}">${COURT[s.langue]}</span></span></span>
     <span class="t-nom">${esc(s.nom || s.carte_id)}</span><span class="t-meta">${esc(s.set_nom || "")} · ${esc(s.numero || "")}</span></button>`;
 }
 function brancherLignes() { $$("[data-ouvrir]").forEach(b => b.onclick = () => { const c = ETAT.cartes.find(x => x.id === b.dataset.ouvrir); if (c) formulaireCarte({ ligne: c }); }); }
@@ -762,9 +964,9 @@ async function lancerRecherche() {
   zone.innerHTML = `<div class="galerie">${res.slice(0, R.vus).map(({ c, set }) => {
     const n = possede.get(c.lang + ":" + c.id);
     return `<button class="tuile" data-carte="${esc(c.id)}" data-lang="${c.lang}">
-      <span class="img">${c.img ? `<img loading="lazy" alt="" src="${esc(imgCarte(c.img))}" onerror="this.remove()">` : ""}<span class="sans" ${c.img ? 'style="z-index:-1"' : ""}>${esc(c.nom)}</span>
+      <span class="img">${visuel({ lang: c.lang, id: c.id, image: c.img, nom: c.nom, meta: `${set?.nom || c.set} · ${c.local}` })}
         <span class="marques"><span class="puce ${c.lang}">${COURT[c.lang]}</span></span>${n ? `<span class="possede">×${n}</span>` : ""}</span>
-      <span class="t-nom">${esc(c.nom)}</span><span class="t-meta">${esc(set?.nom || c.set)} · ${esc(c.local)}${set?.off ? "/" + set.off : ""}</span></button>`;
+      <span class="t-nom">${esc(c.nom)}</span>${nomFr(c) ? `<span class="t-fr">${esc(nomFr(c))}</span>` : ""}<span class="t-meta">${esc(set?.nom || c.set)} · ${esc(c.local)}${set?.off ? "/" + set.off : ""}</span></button>`;
   }).join("")}</div>${res.length > R.vus ? `<div style="text-align:center;margin-top:16px"><button class="btn" id="plus">Afficher plus</button></div>` : ""}`;
   $$("[data-carte]", zone).forEach(b => b.onclick = () => ouvrirFiche(b.dataset.lang, b.dataset.carte));
   const plus = $("#plus"); if (plus) plus.onclick = () => { R.vus += 48; lancerRecherche(); };
@@ -798,7 +1000,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && feuille.co
 async function ouvrirFiche(lang, id) {
   const f = feuille("Fiche de la carte", `<div class="fiche"><div class="grande squelette"></div><div><div class="squelette" style="height:28px;width:60%"></div><div class="squelette" style="height:120px;margin-top:14px"></div></div></div>`);
   let carte;
-  try { carte = await api(lang, "cards/" + id); }
+  try { [carte] = await Promise.all([api(lang, "cards/" + id), ...[lang, lang === "fr" ? "en" : "fr"].map(l => chargerIndex(l).catch(() => null))]); }
   catch (e) { f.querySelector(".f-corps").innerHTML = `<div class="vide">Impossible de charger cette carte pour le moment.</div>`; return; }
   if (feuille.courante?.f !== f) return;
   const cm = carte.pricing?.cardmarket || null, tcg = carte.pricing?.tcgplayer || null;
@@ -811,7 +1013,7 @@ async function ouvrirFiche(lang, id) {
   const c = v => v == null || v === 0 ? "—" : eur(v);
   f.querySelector(".f-corps").innerHTML = `
   <div class="fiche">
-    <div class="grande">${carte.image ? `<img alt="${esc(carte.name)}" src="${esc(imgCarte(carte.image, "high"))}">` : `<div class="vide">Pas d’image</div>`}</div>
+    <div class="grande">${visuel({ lang, id: carte.id, image: carte.image, taille: "high", photo: mesExemplaires.find(x => x.photo_url)?.photo_url, nom: carte.name, meta: `${set.name || ""} · ${numero}` })}</div>
     <div>
       <h3>${esc(carte.name)}</h3>
       <div class="sous"><span class="puce ${lang}">${LANGUES[lang]}</span><span>${esc(set.name || "")}</span><span>·</span><span class="chiffre">${esc(numero)}</span>${carte.rarity ? `<span>·</span><span>${esc(carte.rarity)}</span>` : ""}</div>
@@ -904,7 +1106,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
   const f = feuille(nouv ? "Ajouter à ma collection" : vendue ? "Carte vendue" : "Modifier", `
   <form id="f-carte" class="grille" novalidate>
     <div style="display:flex;gap:12px;align-items:center">
-      <span class="vignette" style="width:64px">${L.image ? `<img alt="" src="${esc(imgCarte(L.image))}">` : ""}</span>
+      <span class="vignette" style="width:64px">${visuel({ lang: L.langue, id: L.carte_id, image: L.image, photo: L.photo_url, petit: true })}</span>
       <div style="min-width:0"><b style="font-size:18px;font-family:var(--f-titre)">${esc(L.nom)}</b><div class="sous" style="color:var(--doux);font-size:14px"><span class="puce ${L.langue}">${LANGUES[L.langue]}</span> ${esc(L.set_nom || "")} · ${esc(L.numero || "")}</div>
       ${L.note_estimee ? `<div class="source" style="margin-top:4px">Scan : ${esc(L.note_estimee)}</div>` : ""}</div>
     </div>
@@ -929,6 +1131,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
       <label class="champ"><span>Vendue sur</span><select name="plateforme_vente">${PLATEFORMES.map(p => `<option ${p === L.plateforme_vente ? "selected" : ""}>${p}</option>`).join("")}</select></label>` : ""}
       <label class="champ large"><span>Notes</span><textarea name="notes">${esc(L.notes || "")}</textarea></label>
     </div>
+    ${nouv && scan && photoDuScan() ? `<label class="choix-photo"><input type="checkbox" name="garder_photo" checked> <span>Garder ma photo du scan (visuel de secours si aucune image officielle)</span></label>` : ""}
     ${L.centrage ? `<div class="source">Centrage mesuré : recto ${esc(L.centrage.recto?.lr || "—")} (G/D), ${esc(L.centrage.recto?.hb || "—")} (H/B)${L.centrage.verso ? `, verso ${esc(L.centrage.verso.lr)} / ${esc(L.centrage.verso.hb)}` : ""}.</div>` : ""}
     <div class="btns">
       <button class="btn principal" type="submit" style="flex:1">${nouv ? "Ajouter" : "Enregistrer"}</button>
@@ -965,6 +1168,10 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
     if (type === "gradee" && (val.note == null || val.note < 1 || val.note > 10)) return toast("La note doit être entre 1 et 10.");
     const b = form.querySelector("[type=submit]"); b.disabled = true; b.innerHTML = '<span class="chargement"></span>';
     try {
+      if (nouv && form.garder_photo?.checked) {
+        try { const c = photoDuScan(); if (c) val.photo = await envoyerPhoto(c); }
+        catch (e2) { console.warn("Photo non enregistrée", e2); toast("Photo non enregistrée, la carte est ajoutée sans."); }
+      }
       const { error } = nouv ? await sb.from("cartes").insert(val) : await sb.from("cartes").update(val).eq("id", L.id);
       if (error) throw error;
       if (nouv) { try { await sb.rpc("rafraichir_prix", { p_carte: L.carte_id, p_langue: L.langue }); } catch (e2) {} }
@@ -984,6 +1191,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
   const bs = $("#b-suppr", f); if (bs) bs.onclick = async () => {
     if (!confirm(`Supprimer « ${L.nom} » (${L.quantite} ex.) ? Cette action est définitive.`)) return;
     const { error } = await sb.from("cartes").delete().eq("id", L.id);
+    if (!error && L.photo && !ETAT.cartes.some(x => x.id !== L.id && x.photo === L.photo)) sb.storage.from("pokemon-photos").remove([L.photo]).catch(() => {});
     if (error) return erreur(error, "Suppression");
     await sb.rpc("calculer_mes_valeurs"); await chargerDonnees(); fermerFeuille(); toast("Supprimée"); rendre();
   };
@@ -991,7 +1199,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
 function formulaireVente(L) {
   const f = feuille("Vendre", `
   <form id="f-vente" class="grille">
-    <div style="display:flex;gap:12px;align-items:center"><span class="vignette" style="width:56px">${L.image ? `<img alt="" src="${esc(imgCarte(L.image))}">` : ""}</span>
+    <div style="display:flex;gap:12px;align-items:center"><span class="vignette" style="width:56px">${visuel({ lang: L.langue, id: L.carte_id, image: L.image, photo: L.photo_url, petit: true })}</span>
       <div><b style="font-family:var(--f-titre);font-size:18px">${esc(L.nom)}</b><div class="source" style="margin:2px 0 0">Valeur actuelle : ${eur(L.valeur_unitaire)} / unité · achetée ${eur(L.prix_achat)}</div></div></div>
     <div class="champs">
       <label class="champ"><span>Quantité vendue</span><input name="q" type="number" inputmode="numeric" min="1" max="${L.quantite}" value="${L.quantite}"></label>
@@ -1020,7 +1228,7 @@ function formulaireVente(L) {
         const { error } = await sb.from("cartes").update(vente).eq("id", L.id); if (error) throw error;
       } else {
         // Vente partielle : le lot garde le reste, une nouvelle ligne porte les cartes vendues
-        const copie = { ...L }; ["id", "user_id", "cree_le", "maj_le", "cote_jour", "cote_maj", "cote", "coef_etat", "valeur_unitaire"].forEach(k => delete copie[k]);
+        const copie = { ...L }; ["id", "user_id", "cree_le", "maj_le", "cote_jour", "cote_maj", "cote", "coef_etat", "valeur_unitaire", "photo_url"].forEach(k => delete copie[k]);
         const { error: e1 } = await sb.from("cartes").insert({ ...copie, ...vente, quantite: q }); if (e1) throw e1;
         const { error: e2 } = await sb.from("cartes").update({ quantite: L.quantite - q }).eq("id", L.id); if (e2) throw e2;
       }
@@ -1141,6 +1349,7 @@ function telecharger(nom, contenu, type) {
 const BAREME_PSA = [[10, 55, 75], [9, 60, 90], [8, 65, 90], [7, 70, 90], [6, 80, 90], [5, 85, 90], [4, 85, 90], [3, 90, 90]];
 const NIVEAUX = [["Impeccable", 10], ["À peine visible", 9], ["Léger", 8], ["Visible", 6], ["Marqué", 4], ["Abîmé", 2]];
 const CRITERES = [["coins", "Coins", "blanchiment, pointes émoussées"], ["bords", "Bords", "éclats, blanchiment sur la tranche"], ["surface", "Surface", "rayures, traces, plis, impression"]];
+const SEUIL_FLOU = 40;
 const Scan = {
   flux: null, etape: "camera", face: "recto", photos: {}, mesures: {}, controle: {}, carte: null, lampe: false,
   arreter() { if (this.flux) { this.flux.getTracks().forEach(t => t.stop()); this.flux = null; } }
@@ -1157,48 +1366,102 @@ function vueScan() {
 }
 function recommencerScan() { Object.assign(Scan, { etape: "camera", face: "recto", photos: {}, mesures: {}, controle: {}, carte: null }); vueScan(); }
 
-/* Étape 1 : caméra en direct avec cadre, ou photo de la galerie */
+/* Étape 1 : caméra en direct avec cadre, ou appareil photo du téléphone / galerie.
+   Mise au point : un téléphone ne fait pas le point à moins de ~12 cm, d'où un cadre plus petit (tenir à ~20 cm),
+   le toucher pour faire le point (Android/Chrome), la photo pleine résolution et un contrôle de netteté. */
 async function scanCamera(entete) {
   const S = Scan;
   $("#vue").innerHTML = `${entete}
   <div class="titre-section" style="margin-top:0"><h2>${S.face === "recto" ? "Photographie le recto" : "Photographie le verso"}</h2>${S.face === "verso" ? `<button class="btn discret" id="b-sauter">Passer le verso</button>` : ""}</div>
-  <div class="scan-zone" id="zone"><video id="video" playsinline muted autoplay></video><div class="guide" id="guide"></div>
-    <div class="ctl"><label class="icone-btn" title="Choisir une photo" aria-label="Choisir une photo">${icone.image}<input type="file" accept="image/*" id="fichier" hidden></label><button class="obturateur" id="declencher" aria-label="Prendre la photo"></button><button class="icone-btn" id="b-lampe" title="Lampe" aria-label="Allumer la lampe" hidden>${icone.lampe}</button></div></div>
-  <p class="source" style="text-align:center">Carte à plat sur un fond sombre et uni, sans reflet, le téléphone bien parallèle. Sortie de sa pochette si possible.</p>
-  <div id="cam-erreur"></div>`;
+  <div class="scan-zone" id="zone"><video id="video" playsinline muted autoplay></video><div class="guide" id="guide"><span class="guide-aide">Touche la carte pour faire la mise au point</span></div>
+    <div class="anneau" id="anneau" hidden></div>
+    <div class="zoom" id="zoom-bloc" hidden><span>1×</span><input type="range" id="zoom" min="1" max="3" step="0.1" value="1" aria-label="Zoom"><span id="zoom-val">1×</span></div>
+    <div class="ctl"><label class="icone-btn" title="Choisir une photo de la galerie" aria-label="Choisir une photo de la galerie">${icone.image}<input type="file" accept="image/*" id="fichier" hidden></label><button class="obturateur" id="declencher" aria-label="Prendre la photo"></button><button class="icone-btn" id="b-lampe" title="Lampe" aria-label="Allumer la lampe" hidden>${icone.lampe}</button></div></div>
+  <div class="scan-natif">
+    <label class="btn plein">${icone.photo} Utiliser l’appareil photo du téléphone<input type="file" accept="image/*" capture="environment" id="fichier-natif" hidden></label>
+    <p class="source">Mise au point la plus fiable, surtout sur iPhone. Cadre la carte au centre, en remplissant bien la photo.</p>
+  </div>
+  <p class="source" style="text-align:center">Téléphone à <b>15–20 cm</b>, bien parallèle à la carte, posée à plat sur un fond sombre et uni, sans reflet.</p>`;
   $("#fichier").onchange = e => { const fi = e.target.files[0]; if (fi) chargerPhoto(fi); };
+  $("#fichier-natif").onchange = e => { const fi = e.target.files[0]; if (fi) chargerPhoto(fi); };
   const sauter = $("#b-sauter"); if (sauter) sauter.onclick = () => { S.arreter(); S.etape = "controle"; vueScan(); };
   try {
     S.arreter();
-    S.flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 2560 }, height: { ideal: 1920 } }, audio: false });
+    S.flux = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false });
     if (ETAT.vue !== "scan") return S.arreter();
     const v = $("#video"); v.srcObject = S.flux; await v.play().catch(() => {});
-    const piste = S.flux.getVideoTracks()[0], cap = piste.getCapabilities?.() || {};
-    if (cap.focusMode?.includes?.("continuous")) piste.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
-    if (cap.torch) { const b = $("#b-lampe"); b.hidden = false; b.onclick = () => { S.lampe = !S.lampe; piste.applyConstraints({ advanced: [{ torch: S.lampe }] }).catch(() => {}); b.style.color = S.lampe ? "var(--or)" : ""; }; }
-    $("#declencher").onclick = () => {
-      const v = $("#video"), zone = $("#zone").getBoundingClientRect(), g = $("#guide").getBoundingClientRect();
-      // Correspondance entre l'affichage (object-fit: cover) et l'image réelle de la caméra
-      const vw = v.videoWidth, vh = v.videoHeight, ech = Math.max(zone.width / vw, zone.height / vh);
-      const ox = (zone.width - vw * ech) / 2, oy = (zone.height - vh * ech) / 2, marge = 0.07;
-      let x = (g.left - zone.left - ox) / ech, y = (g.top - zone.top - oy) / ech, w = g.width / ech, h = g.height / ech;
-      x -= w * marge; y -= h * marge; w *= 1 + 2 * marge; h *= 1 + 2 * marge;
-      x = Math.max(0, x); y = Math.max(0, y); w = Math.min(vw - x, w); h = Math.min(vh - y, h);
-      const c = document.createElement("canvas"); const ech2 = Math.min(1, 1400 / h);
+    const piste = S.flux.getVideoTracks()[0], cap = piste.getCapabilities?.() || {}, modes = cap.focusMode || [];
+    if (modes.includes("continuous")) piste.applyConstraints({ advanced: [{ focusMode: "continuous" }] }).catch(() => {});
+    if (cap.torch) { const b = $("#b-lampe"); b.hidden = false; b.onclick = e => { e.stopPropagation(); S.lampe = !S.lampe; piste.applyConstraints({ advanced: [{ torch: S.lampe }] }).catch(() => {}); b.style.color = S.lampe ? "var(--or)" : ""; }; }
+    if (cap.zoom && cap.zoom.max > cap.zoom.min) {
+      const z = $("#zoom"), bloc = $("#zoom-bloc"); bloc.hidden = false;
+      z.min = cap.zoom.min; z.max = Math.min(cap.zoom.max, 4); z.step = cap.zoom.step || .1; z.value = piste.getSettings?.().zoom || cap.zoom.min;
+      const maj = () => { $("#zoom-val").textContent = (+z.value).toFixed(1).replace(".0", "") + "×"; piste.applyConstraints({ advanced: [{ zoom: +z.value }] }).catch(() => {}); };
+      z.oninput = maj; bloc.onclick = e => e.stopPropagation(); maj();
+    }
+    // Position dans l'image de la caméra d'un point de l'écran (la vidéo est affichée en « cover »)
+    const versImage = (px, py) => {
+      const zone = $("#zone").getBoundingClientRect(), vw = v.videoWidth, vh = v.videoHeight, ech = Math.max(zone.width / vw, zone.height / vh);
+      const ox = (zone.width - vw * ech) / 2, oy = (zone.height - vh * ech) / 2;
+      return { x: (px - zone.left - ox) / ech, y: (py - zone.top - oy) / ech, ech };
+    };
+    const faireLePoint = async (fx, fy) => {
+      const pt = [{ x: Math.min(1, Math.max(0, fx)), y: Math.min(1, Math.max(0, fy)) }];
+      try {
+        if (modes.includes("single-shot")) await piste.applyConstraints({ advanced: [{ focusMode: "single-shot", pointsOfInterest: pt }] });
+        else if (modes.includes("continuous")) {
+          if (modes.includes("manual")) await piste.applyConstraints({ advanced: [{ focusMode: "manual" }] });
+          await piste.applyConstraints({ advanced: [{ focusMode: "continuous", pointsOfInterest: pt }] });
+        } else return false;
+        return true;
+      } catch (e) { return false; }
+    };
+    let prevenu = false;
+    $("#zone").addEventListener("click", async e => {
+      if (e.target.closest(".ctl,.zoom")) return;
+      const zone = $("#zone").getBoundingClientRect(), a = $("#anneau");
+      a.hidden = false; a.style.left = (e.clientX - zone.left) + "px"; a.style.top = (e.clientY - zone.top) + "px";
+      a.classList.remove("ok"); void a.offsetWidth; a.classList.add("ok");
+      const p = versImage(e.clientX, e.clientY);
+      const ok = await faireLePoint(p.x / v.videoWidth, p.y / v.videoHeight);
+      if (!ok && !prevenu) { prevenu = true; toast("Ce navigateur ne laisse pas régler la mise au point : utilise « Appareil photo du téléphone ».", 5000); }
+    });
+    $("#declencher").onclick = async e => {
+      e.stopPropagation();
+      const bouton = e.currentTarget; if (bouton.disabled) return;
+      bouton.disabled = true; bouton.classList.add("occupe");
+      const g = $("#guide").getBoundingClientRect(), hg = versImage(g.left, g.top), bd = versImage(g.right, g.bottom);
+      const vw = v.videoWidth, vh = v.videoHeight, marge = .07;
+      // Cadre en proportions de l'image, avec une marge pour voir les bords de la carte
+      let rx = hg.x / vw, ry = hg.y / vh, rw = (bd.x - hg.x) / vw, rh = (bd.y - hg.y) / vh;
+      rx -= rw * marge; ry -= rh * marge; rw *= 1 + 2 * marge; rh *= 1 + 2 * marge;
+      rx = Math.max(0, rx); ry = Math.max(0, ry); rw = Math.min(1 - rx, rw); rh = Math.min(1 - ry, rh);
+      // Point fait au centre juste avant la photo, si possible
+      if (await faireLePoint(.5, .5)) await new Promise(r => setTimeout(r, 650));
+      let source = v, sw = vw, sh = vh;
+      // Photo pleine résolution (Android/Chrome) si son cadrage correspond à la vidéo
+      if (window.ImageCapture) {
+        try {
+          const blob = await new ImageCapture(piste).takePhoto();
+          const bmp = await createImageBitmap(blob);
+          if (Math.abs(bmp.width / bmp.height - vw / vh) < .03) { source = bmp; sw = bmp.width; sh = bmp.height; }
+        } catch (err) { /* image de la vidéo */ }
+      }
+      const x = rx * sw, y = ry * sh, w = rw * sw, h = rh * sh;
+      const c = document.createElement("canvas"), ech2 = Math.min(1, 1800 / h);
       c.width = Math.round(w * ech2); c.height = Math.round(h * ech2);
-      c.getContext("2d").drawImage(v, x, y, w, h, 0, 0, c.width, c.height);
+      c.getContext("2d").drawImage(source, x, y, w, h, 0, 0, c.width, c.height);
       S.arreter();
       enregistrerPhoto(c, true);
     };
   } catch (e) {
-    $("#zone").innerHTML = `<div class="vide" style="color:#fff;padding:60px 20px">Caméra indisponible (${esc(e.name === "NotAllowedError" ? "autorisation refusée" : e.message || e.name)}).<br><br><label class="btn principal">${icone.image} Choisir une photo<input type="file" accept="image/*" capture="environment" hidden id="fichier2"></label></div>`;
-    $("#fichier2").onchange = ev => { const fi = ev.target.files[0]; if (fi) chargerPhoto(fi); };
+    $("#zone").innerHTML = `<div class="vide" style="color:#fff;padding:60px 20px">Caméra indisponible ici (${esc(e.name === "NotAllowedError" ? "autorisation refusée" : e.message || e.name)}).<br>Utilise l’appareil photo du téléphone avec le bouton ci-dessous.</div>`;
   }
 }
 function chargerPhoto(fichier) {
   const img = new Image();
   img.onload = () => {
-    const ech = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const ech = Math.min(1, 2400 / Math.max(img.width, img.height));
     const c = document.createElement("canvas"); c.width = Math.round(img.width * ech); c.height = Math.round(img.height * ech);
     c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
     URL.revokeObjectURL(img.src);
@@ -1207,10 +1470,26 @@ function chargerPhoto(fichier) {
   img.onerror = () => toast("Image illisible.");
   img.src = URL.createObjectURL(fichier);
 }
+/* Netteté : variance du laplacien sur l'intérieur de la carte, image ramenée à 600 px de large. */
+function nettete(canvas, ext) {
+  const sx = ext ? ext.g : 0, sy = ext ? ext.h : 0, sw = ext ? ext.d - ext.g : canvas.width, sh = ext ? ext.b - ext.h : canvas.height;
+  const ech = Math.min(1, 600 / sw), w = Math.max(20, Math.round(sw * ech)), h = Math.max(20, Math.round(sh * ech));
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(canvas, sx, sy, sw, sh, 0, 0, w, h);
+  const d = x.getImageData(0, 0, w, h).data, g = new Float32Array(w * h);
+  for (let i = 0, p = 0; i < g.length; i++, p += 4) g[i] = d[p] * .299 + d[p + 1] * .587 + d[p + 2] * .114;
+  let s = 0, s2 = 0, n = 0;
+  for (let yy = Math.round(h * .08); yy < Math.round(h * .92); yy++) for (let xx = Math.round(w * .08); xx < Math.round(w * .92); xx++) {
+    const i = yy * w + xx, l = 4 * g[i] - g[i - 1] - g[i + 1] - g[i - w] - g[i + w]; s += l; s2 += l * l; n++;
+  }
+  const m = s / Math.max(1, n); return s2 / Math.max(1, n) - m * m;
+}
 function enregistrerPhoto(canvas, cadree) {
   const S = Scan;
   S.photos[S.face] = canvas;
   S.mesures[S.face] = detecterBords(canvas, cadree);
+  S.nettete = S.nettete || {};
+  S.nettete[S.face] = nettete(canvas, S.mesures[S.face].ext);
   S.etape = "centrage"; vueScan();
 }
 
@@ -1263,6 +1542,7 @@ function scanCentrage(entete) {
   const S = Scan, canvas = S.photos[S.face], m = S.mesures[S.face];
   $("#vue").innerHTML = `${entete}
   <div class="titre-section" style="margin-top:0"><h2>Centrage du ${S.face}</h2><button class="btn discret" id="b-reprendre">Reprendre</button></div>
+  ${(S.nettete?.[S.face] ?? 999) < SEUIL_FLOU ? `<div class="alerte-flou"><span>La photo semble floue : la mesure et la lecture du numéro seront moins fiables.</span><button class="btn principal" id="b-reprendre2">Reprendre la photo</button></div>` : ""}
   <div class="grille deux">
     <div><div class="editeur" id="editeur"><canvas id="toile"></canvas><div class="loupe" id="loupe" hidden><canvas width="236" height="236"></canvas></div></div>
       <p class="source" style="text-align:center">Glisse les lignes : <b style="color:var(--or)">jaunes</b> sur le bord de la carte, <b style="color:var(--bleu)">bleues</b> sur la fin de la bordure. Une loupe apparaît pendant le réglage.</p></div>
@@ -1330,6 +1610,7 @@ function scanCentrage(entete) {
   ed.addEventListener("pointermove", bouger);
   ed.addEventListener("pointerup", fin); ed.addEventListener("pointercancel", fin);
   $("#b-reprendre").onclick = () => { delete S.photos[S.face]; delete S.mesures[S.face]; S.etape = "camera"; vueScan(); };
+  const r2 = $("#b-reprendre2"); if (r2) r2.onclick = $("#b-reprendre").onclick;
   const bv = $("#b-verso"); if (bv) bv.onclick = () => { S.face = "verso"; S.etape = "camera"; vueScan(); };
   $("#b-suite").onclick = () => { S.etape = "controle"; vueScan(); };
 }
@@ -1416,7 +1697,7 @@ async function scanCarte(entete) {
 }
 function afficherCandidats(zone, cartes, surChoix) {
   if (!cartes.length) { zone.innerHTML = ""; return; }
-  zone.innerHTML = `<div class="candidats">${cartes.map(c => { const set = INDEX[c.lang]?.sets[c.set]; return `<button class="tuile" data-c="${esc(c.id)}" data-l="${c.lang}"><span class="img">${c.img ? `<img loading="lazy" alt="" src="${esc(imgCarte(c.img))}">` : `<span class="sans">${esc(c.nom)}</span>`}<span class="marques"><span class="puce ${c.lang}">${COURT[c.lang]}</span></span></span><span class="t-nom">${esc(c.nom)}</span><span class="t-meta">${esc(set?.nom || c.set)} · ${esc(c.local)}</span></button>`; }).join("")}</div>`;
+  zone.innerHTML = `<div class="candidats">${cartes.map(c => { const set = INDEX[c.lang]?.sets[c.set]; return `<button class="tuile" data-c="${esc(c.id)}" data-l="${c.lang}"><span class="img">${visuel({ lang: c.lang, id: c.id, image: c.img, nom: c.nom, meta: `${set?.nom || c.set} · ${c.local}` })}<span class="marques"><span class="puce ${c.lang}">${COURT[c.lang]}</span></span></span><span class="t-nom">${esc(c.nom)}</span>${nomFr(c) ? `<span class="t-fr">${esc(nomFr(c))}</span>` : ""}<span class="t-meta">${esc(set?.nom || c.set)} · ${esc(c.local)}</span></button>`; }).join("")}</div>`;
   $$("[data-c]", zone).forEach(b => b.onclick = () => surChoix(b.dataset.l, b.dataset.c));
 }
 async function choisirCarteScan(lang, id) {
