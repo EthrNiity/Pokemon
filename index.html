@@ -149,6 +149,8 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .kpi span{display:block;font-size:12px;font-weight:800;color:var(--doux)}
 .kpi b{font-family:var(--f-chiffre);font-size:17px}
 .kpi small{display:block}
+.kpi-psa{margin-top:10px;position:relative;background:linear-gradient(var(--papier2),var(--papier2)) padding-box,var(--holo) border-box;border:2px solid transparent}
+.kpi-psa small{font-size:12px;color:var(--doux);font-weight:600}
 .periodes{display:flex;gap:4px}
 .periodes button{border:0;background:transparent;color:var(--doux);font-weight:800;font-size:13px;padding:5px 9px;border-radius:9px}
 .periodes button[aria-pressed="true"]{background:var(--papier2);color:var(--encre)}
@@ -174,7 +176,8 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .ligne .meta{font-size:13px;color:var(--doux);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;gap:6px;align-items:center;margin-top:2px}
 .ligne .droite{text-align:right}
 .ligne .droite b{font-family:var(--f-chiffre);font-size:15.5px;display:block}
-.ligne .droite small{font-size:12px;color:var(--doux)}
+.ligne .droite small{font-size:12px;color:var(--doux);display:block;white-space:nowrap}
+.ligne .droite small.psa-ok{color:var(--ja);font-weight:800}
 .galerie{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
 @media (min-width:700px){.galerie{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
 .tuile{border:0;background:transparent;padding:0;text-align:left;color:inherit;display:flex;flex-direction:column;gap:6px}
@@ -235,6 +238,7 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:600;margin:0;letter-spacing:.005
 .cote{background:var(--papier);border:1px solid var(--trait);border-radius:13px;padding:9px 11px}
 .cote span{display:block;font-size:11.5px;font-weight:800;color:var(--doux)}
 .cote b{font-family:var(--f-chiffre);font-size:16px}
+.cote.cote-estimee{border:2px solid var(--ja);background:color-mix(in srgb,var(--ja) 9%,var(--papier))}
 .cote.grande-cote{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;background:var(--papier2);border:0}
 .cote.grande-cote b{font-size:27px}
 .source{font-size:12.5px;color:var(--doux);margin-top:8px}
@@ -831,8 +835,18 @@ function totaux() {
   });
   ven.forEach(c => { t.ventes += (c.prix_vente ?? 0) * c.quantite; t.frais += c.frais_vente ?? 0; t.achatVendu += (c.prix_achat ?? 0) * c.quantite; t.nbVendu += c.quantite; });
   t.total = t.brut + t.gradee;
+  t.psa = 0; t.psaNb = 0; t.psaBrut = 0;
+  pos.filter(c => c.type === "brut" && c.valeur_psa_estime != null).forEach(c => { t.psa += c.valeur_psa_estime * c.quantite; t.psaBrut += (c.valeur_unitaire ?? 0) * c.quantite; t.psaNb += c.quantite; });
   t.benefice = t.ventes - t.frais - t.achatVendu;
   return t;
+}
+/* Colonne de droite d'une carte possédée : valeur brute, puis valeur si gradée à la note estimée. */
+function prixCarte(c) {
+  if (c.type === "gradee") return `<b>${eur((c.valeur_unitaire ?? 0) * c.quantite)}</b><small>${esc(c.gradeur || "Gradée")} ${c.note != null ? esc(String(+c.note)) : ""} · valeur saisie</small>`;
+  const brut = c.valeur_unitaire != null ? eur(c.valeur_unitaire * c.quantite) : "—";
+  const voisine = c.psa_utilise != null && c.psa_utilise !== Math.floor(c.psa_estime) ? ` (ventes PSA ${c.psa_utilise})` : "";
+  const psa = c.psa_estime != null ? `PSA ${+c.psa_estime} est. ${c.valeur_psa_estime != null ? eur(c.valeur_psa_estime * c.quantite) + voisine : "· pas de vente"}` : "PSA non estimé";
+  return `<b>${brut}</b><small class="${c.valeur_psa_estime != null ? "psa-ok" : ""}">${psa}</small>`;
 }
 function ligneCarte(c, droite) {
   const badge = c.type === "gradee" ? `<span class="puce gradee">${esc(c.gradeur || "Gradée")} ${c.note != null ? esc(String(c.note).replace(".0", "")) : ""}</span>` : `<span class="puce">${esc(c.etat || "NM")}</span>`;
@@ -862,6 +876,7 @@ function vueRecap() {
         <div class="kpi"><span>Prix d’achat</span><b>${eur(t.achat, true)}</b></div>
         <div class="kpi"><span>Plus-value latente</span><b class="${signe(pv)}">${t.achat ? eur(pv, true) : "—"}</b>${pvPct != null ? `<small class="${signe(pv)}" style="font-weight:800;font-size:12px"> ${pct(pvPct)}</small>` : ""}</div>
       </div>
+      ${t.psaNb ? `<div class="kpi kpi-psa"><span>Si je faisais grader ${t.psaNb > 1 ? `mes ${t.psaNb} cartes estimées` : "ma carte estimée"} (ventes PSA réelles)</span><b>${eur(t.psa, true)}</b><small>au lieu de ${eur(t.psaBrut, true)} en brut · hors frais de gradation</small></div>` : ""}
       ${t.sansCote ? `<p class="source">${t.sansCote} lot${t.sansCote > 1 ? "s" : ""} sans cote ni valeur saisie, compté${t.sansCote > 1 ? "s" : ""} 0 €.</p>` : ""}
     </div>
     <div class="carte-ui">
@@ -875,7 +890,7 @@ function vueRecap() {
   <section class="grille deux">
     <div>
       <div class="titre-section"><h2>Mes plus belles cartes</h2><a class="petit" href="#collection">Toute la collection</a></div>
-      <div class="liste">${top.length ? top.map(c => ligneCarte(c, `<b>${eur(c.valeur_unitaire * c.quantite)}</b><small>${c.type === "gradee" ? "valeur saisie" : "cote " + eur(c.cote)}</small>`)).join("") : `<div class="carte-ui vide">${icone.cartes}<div>Ta collection est vide.<br>Scanne une carte ou cherche-la pour commencer.</div><div class="btns" style="justify-content:center;margin-top:12px"><a class="btn principal" href="#scan">Scanner</a><a class="btn" href="#recherche">Chercher</a></div></div>`}</div>
+      <div class="liste">${top.length ? top.map(c => ligneCarte(c, prixCarte(c))).join("") : `<div class="carte-ui vide">${icone.cartes}<div>Ta collection est vide.<br>Scanne une carte ou cherche-la pour commencer.</div><div class="btns" style="justify-content:center;margin-top:12px"><a class="btn principal" href="#scan">Scanner</a><a class="btn" href="#recherche">Chercher</a></div></div>`}</div>
     </div>
     <div>
       <div class="titre-section"><h2>Ventes</h2><a class="petit" href="#ventes">Détail</a></div>
@@ -1029,10 +1044,11 @@ async function ouvrirFiche(lang, id) {
         ${tcgMarche ? `<div class="cote"><span>TCGplayer (US)</span><b>${fmtUsd.format(tcgMarche)}</b></div>` : ""}
       </div>
       <p class="source">Cardmarket via TCGdex${cm.updated ? ", mis à jour le " + esc(dateFr(cm.updated.slice(0, 10))) : ""}. La cote mélange états et langues d’une même impression.</p>`
-      : `<div class="carte-ui" style="margin-top:12px">Pas de cote Cardmarket pour cette carte. Tu peux lui donner une valeur à la main en l’ajoutant.</div>`}
+      : `<div class="carte-ui" style="margin-top:12px">Pas de cote Cardmarket pour cette carte${lang === "ja" ? " (les japonaises anciennes n’y sont pas reliées)" : ""}. La cote brute vient alors des ventes TCGplayer, ci-dessous.</div>`}
       <div class="titre-section" style="margin-top:16px"><h2 style="font-size:17px">Courbe de prix</h2><span class="petit" id="info-courbe"></span></div>
       <div class="courbe" id="courbe-carte" style="height:180px"></div>
       <div class="legende" id="legende-carte"></div>
+      <div id="bloc-gradees"></div>
       <div class="btns" style="margin-top:16px">
         <button class="btn principal" id="f-ajouter">${icone.plus} Ajouter à ma collection</button>
         <button class="btn" id="f-suivre" aria-pressed="${suivie}">${suivie ? icone.etoilePleine + " Suivie" : icone.etoile + " Suivre la cote"}</button>
@@ -1047,6 +1063,30 @@ async function ouvrirFiche(lang, id) {
   brancherLignes();
   $("#f-ajouter").onclick = () => formulaireCarte({ carte, lang });
   $("#f-suivre").onclick = () => basculerSuivi(carte, lang);
+  // Prix des versions gradées : médiane des ventes eBay réelles par note (PokemonPriceTracker), en euros
+  const afficherGradees = data => {
+    const zone = $("#bloc-gradees", f); if (!zone || feuille.courante?.f !== f) return;
+    const notes = data ? Object.entries(data.grades || {}).filter(([k, v]) => /^psa\d+$/.test(k) && v?.eur != null).sort((a, b) => parseInt(b[0].slice(3)) - parseInt(a[0].slice(3))) : [];
+    const estime = mesExemplaires.find(x => x.psa_estime != null)?.psa_estime;
+    const version = data?.produit === "en" && lang !== "en" ? " · version anglaise" : "";
+    zone.innerHTML = `<div class="titre-section" style="margin-top:16px"><h2 style="font-size:17px">Version gradée PSA</h2>${data ? `<span class="petit">ventes réelles${version} · ${esc(dateFr(data.jour))}</span>` : ""}</div>` + (data
+      ? (notes.length
+        ? `<div class="cotes" style="margin-top:0">${notes.map(([k, v]) => `<div class="cote ${estime != null && Math.floor(estime) === parseInt(k.slice(3)) ? "cote-estimee" : ""}"><span>PSA ${k.slice(3)} · ${v.ventes} vente${v.ventes > 1 ? "s" : ""}</span><b>${eur(v.eur)}</b></div>`).join("")}</div>
+           <p class="source">Médiane des ventes eBay et Fanatics des derniers mois, convertie en euros.${estime != null ? ` Encadré : la note estimée de ton exemplaire (PSA ${+estime}).` : ""} Peu de ventes = prix moins sûr.</p>`
+        : `<p class="source" style="margin-top:0">Aucune vente gradée PSA trouvée pour cette carte.</p>`)
+        + (data.brut_eur != null && !cm ? `<p class="source">Cote brute quasi neuve (TCGplayer${data.produit === "ja" ? ", version japonaise" : ""}) : <b>${eur(data.brut_eur)}</b>.</p>` : "")
+      : `<button class="btn" id="b-gradees">Chercher les prix PSA (ventes réelles)</button><p class="source">Relevés automatiquement pour tes cartes et tes cartes suivies.</p>`);
+    const b = $("#b-gradees", zone);
+    if (b) b.onclick = async () => {
+      b.disabled = true; b.innerHTML = '<span class="chargement"></span> Recherche…';
+      const { data: d, error } = await sb.rpc("rafraichir_gradees", { p_carte: carte.id, p_langue: lang });
+      if (error) { erreur(error, "Prix gradés"); b.disabled = false; b.textContent = "Réessayer"; return; }
+      if (!d) { zone.innerHTML = `<p class="source">Cette carte n’est pas encore référencée par la source des prix gradés.</p>`; return; }
+      afficherGradees(d);
+    };
+  };
+  sb.from("prix_gradees").select("*").eq("carte_id", carte.id).eq("langue", lang).order("jour", { ascending: false }).limit(1).maybeSingle()
+    .then(({ data }) => afficherGradees(data || null));
   // Courbe : historique enregistré, sinon points estimés à partir des moyennes du jour
   let hist = [];
   try { const { data } = await sb.from("prix").select("*").eq("carte_id", carte.id).eq("langue", lang).order("jour"); hist = data || []; } catch (e) {}
@@ -1099,7 +1139,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
     carte_id: carte.id, langue: lang, nom: carte.name, set_id: carte.set?.id, set_nom: carte.set?.name,
     numero: carte.localId + (carte.set?.cardCount?.official ? "/" + carte.set.cardCount.official : ""), total_set: carte.set?.cardCount?.official ?? null,
     image: carte.image || null, rarete: carte.rarity || null, variante: varDefaut, type: "brut", etat: scan?.etat || "NM", quantite: 1,
-    date_achat: aujourdhui(), centrage: scan?.centrage || null, controle: scan?.controle || null, note_estimee: scan?.note_estimee || null
+    date_achat: aujourdhui(), centrage: scan?.centrage || null, controle: scan?.controle || null, note_estimee: scan?.note_estimee || null, psa_estime: scan?.psa_estime ?? null
   };
   const vendue = L.statut === "vendue";
   const variantesDispo = carte ? Object.entries({ normal: v.normal, reverse: v.reverse, holo: v.holo, "premiere-edition": v.firstEdition }).filter(([, ok]) => ok).map(([k]) => k) : [];
@@ -1116,6 +1156,8 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
       <label class="champ"><span>Variante</span><select name="variante">${listeVar.map(k => `<option value="${k}" ${k === L.variante ? "selected" : ""}>${VARIANTES[k]}</option>`).join("")}</select></label>
       <label class="champ"><span>Quantité</span><input name="quantite" type="number" inputmode="numeric" min="1" step="1" value="${L.quantite}"></label>
       <label class="champ" data-brut><span>État</span><select name="etat">${Object.keys(ETATS).map(k => `<option value="${k}" ${k === (L.etat || "NM") ? "selected" : ""}>${k} · ${ETATS_FR[k]}</option>`).join("")}</select></label>
+      <label class="champ" data-brut><span>Note PSA estimée</span><select name="psa_estime"><option value="">Non estimée</option>${[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(n => `<option value="${n}" ${+L.psa_estime === n ? "selected" : ""}>PSA ${n}</option>`).join("")}</select></label>
+      <p class="source large" data-brut id="aide-psa" style="margin:-4px 0 0"></p>
       <label class="champ" data-brut><span>Valeur à la main (facultatif)</span><input name="valeur_manuelle_b" inputmode="decimal" placeholder="sinon cote × état" value="${L.type === "brut" && L.valeur_manuelle != null ? L.valeur_manuelle : ""}"></label>
       <label class="champ" data-gradee><span>Société</span><select name="gradeur">${GRADEURS.map(g => `<option ${g === (L.gradeur || "PSA") ? "selected" : ""}>${g}</option>`).join("")}</select></label>
       <label class="champ" data-gradee><span>Note</span><input name="note" inputmode="decimal" placeholder="10, 9.5…" value="${L.note ?? ""}"></label>
@@ -1153,6 +1195,16 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
   $$("[data-type]", form).forEach(b => b.onclick = () => { type = b.dataset.type; majType(); });
   form.gradeur.onchange = majType; form.note.oninput = majType;
   majType();
+  // La note PSA ne peut pas dépasser ce que permet l'état (une carte « LP » ne sera pas PSA 10)
+  const majPsa = changeEtat => {
+    const plafond = PLAFOND_PSA[form.etat.value] ?? 10, v = num(form.psa_estime.value);
+    if (v != null && v > plafond) { form.psa_estime.value = String(plafond); if (changeEtat) toast(`Note PSA ramenée à ${plafond} : maximum pour l’état ${form.etat.value}`); }
+    $$("option", form.psa_estime).forEach(o => { o.disabled = o.value !== "" && +o.value > plafond; });
+    const n = num(form.psa_estime.value), g = n != null ? L.prix_grades?.["psa" + Math.floor(n)] : null;
+    $("#aide-psa", f).innerHTML = n == null ? "" : g?.eur != null ? `PSA ${Math.floor(n)} : <b>${eur(g.eur)}</b> (médiane de ${g.ventes} vente${g.ventes > 1 ? "s" : ""}). État ${form.etat.value} : PSA ${plafond} au mieux.` : `État ${form.etat.value} : PSA ${plafond} au mieux.${L.note_estimee ? " Scan : " + esc(L.note_estimee) + "." : ""}`;
+  };
+  form.etat.onchange = () => majPsa(true); form.psa_estime.onchange = () => majPsa(false);
+  majPsa(false);
   form.addEventListener("submit", async e => {
     e.preventDefault();
     const val = {
@@ -1161,6 +1213,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
       etat: type === "brut" ? form.etat.value : null,
       gradeur: type === "gradee" ? form.gradeur.value : null, note: type === "gradee" ? num(form.note.value) : null, certificat: type === "gradee" ? form.certificat.value.trim() || null : null,
       valeur_manuelle: type === "gradee" ? num(form.valeur_manuelle_g.value) : num(form.valeur_manuelle_b.value),
+      psa_estime: type === "brut" ? num(form.psa_estime.value) : null,
       prix_achat: num(form.prix_achat.value), date_achat: form.date_achat.value || null, lieu_achat: form.lieu_achat.value.trim() || null,
       notes: form.notes.value.trim() || null, centrage: L.centrage || null, controle: L.controle || null, note_estimee: L.note_estimee || null
     };
@@ -1175,7 +1228,7 @@ function formulaireCarte({ carte, lang, ligne, scan }) {
       }
       const { error } = nouv ? await sb.from("cartes").insert(val) : await sb.from("cartes").update(val).eq("id", L.id);
       if (error) throw error;
-      if (nouv) { try { await sb.rpc("rafraichir_prix", { p_carte: L.carte_id, p_langue: L.langue }); } catch (e2) {} }
+      if (nouv) { try { await Promise.all([sb.rpc("rafraichir_prix", { p_carte: L.carte_id, p_langue: L.langue }), sb.rpc("rafraichir_gradees", { p_carte: L.carte_id, p_langue: L.langue })]); } catch (e2) {} }
       await sb.rpc("calculer_mes_valeurs");
       await chargerDonnees();
       fermerFeuille(); toast(nouv ? "Ajoutée à ta collection" : "Enregistré");
@@ -1261,7 +1314,7 @@ function vueCollection() {
     l.sort(tris[F.tri]);
     $("#liste-col").innerHTML = l.length ? l.map(c => {
       const p = c.prix_achat != null ? pv(c) : null;
-      return ligneCarte(c, `<b>${c.valeur_unitaire != null ? eur(val(c)) : "—"}</b><small class="${p != null ? signe(p) : ""}">${p != null ? (p >= 0 ? "+" : "") + eur(p) : c.type === "gradee" ? "valeur saisie" : c.cote != null ? "cote " + eur(c.cote) : "sans cote"}</small>`);
+      return ligneCarte(c, prixCarte(c) + (p != null ? `<small class="${signe(p)}">${p >= 0 ? "+" : ""}${eur(p)} vs achat</small>` : ""));
     }).join("") : `<div class="carte-ui vide">${icone.cartes}<div>${ETAT.cartes.some(c => c.statut === "possedee") ? "Aucune carte ne correspond à ces filtres." : "Aucune carte pour l’instant."}</div><div class="btns" style="justify-content:center;margin-top:12px"><a class="btn principal" href="#scan">Scanner une carte</a><a class="btn" href="#recherche">Chercher</a></div></div>`;
     brancherLignes();
   };
@@ -1321,7 +1374,7 @@ function vueReglages() {
       </div>
       <div class="carte-ui">
         <h2 style="font-size:18px">Sources</h2>
-        <p class="source">Données des cartes et cotes : <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a> (cotes Cardmarket en euros, TCGplayer en dollars), relevées chaque nuit vers 4 h 30. Cartes gradées : la valeur que tu saisis. Le centrage et la note estimée du scanner sont indicatifs et ne remplacent pas une gradation officielle.</p>
+        <p class="source">Données des cartes et cotes : <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a> (cotes Cardmarket en euros, TCGplayer en dollars), relevées chaque nuit vers 4 h 30. Cartes gradées et note PSA estimée : médiane des ventes eBay réelles par note, via <a href="https://www.pokemonpricetracker.com" target="_blank" rel="noopener">PokemonPriceTracker</a> (relevé tous les 3 jours, version anglaise pour les cartes françaises), convertie en euros au taux BCE ; sans cote Cardmarket, la cote brute vient de TCGplayer. Tes cartes gradées gardent la valeur que tu saisis. Le centrage et la note estimée du scanner sont indicatifs et ne remplacent pas une gradation officielle.</p>
       </div>
     </div>
   </div>`;
@@ -1351,6 +1404,9 @@ const BAREME_PSA = [[10, 55, 75], [9, 60, 90], [8, 65, 90], [7, 70, 90], [6, 80,
 const NIVEAUX = [["Impeccable", 10], ["À peine visible", 9], ["Léger", 8], ["Visible", 6], ["Marqué", 4], ["Abîmé", 2]];
 const CRITERES = [["coins", "Coins", "blanchiment, pointes émoussées"], ["bords", "Bords", "éclats, blanchiment sur la tranche"], ["surface", "Surface", "rayures, traces, plis, impression"]];
 const SEUIL_FLOU = 40;
+/* Correspondance usuelle état Cardmarket ↔ note PSA : NM 7–10, EX 5–6, GD 4, LP 3, PL 2, PO 1. */
+const PLAFOND_PSA = { NM: 10, EX: 6, GD: 4, LP: 3, PL: 2, PO: 1 };
+const etatPourPsa = n => n >= 7 ? "NM" : n >= 5 ? "EX" : n >= 4 ? "GD" : n >= 3 ? "LP" : n >= 2 ? "PL" : "PO";
 const Scan = {
   flux: null, etape: "camera", face: "recto", photos: {}, mesures: {}, controle: {}, carte: null, lampe: false,
   arreter() { if (this.flux) { this.flux.getTracks().forEach(t => t.stop()); this.flux = null; } }
@@ -1651,9 +1707,15 @@ function scanControle(entete) {
     const manque = CRITERES.filter(([k]) => S.controle[k] == null).length;
     if (!notes.length) { $("#note-finale").innerHTML = `<div class="badge">?</div><div><b>Note estimée</b><p>Évalue chaque critère.</p></div>`; S.note = null; return; }
     const n = Math.min(...notes), haut = Math.min(10, n + (notes.filter(v => v === n).length === 1 && n < 10 ? 1 : 0));
-    const etat = n >= 9 ? "NM" : n >= 7 ? "EX" : n >= 6 ? "GD" : n >= 5 ? "LP" : n >= 3 ? "PL" : "PO";
+    if (manque) {
+      // Sans coins, bords et surface, le centrage ne donne qu'un maximum, pas une note
+      S.note = { n, haut: n, etat: null, nc, partiel: true };
+      $("#note-finale").innerHTML = `<div class="badge" style="font-size:22px">≤${n}</div><div><b>PSA ${n} au mieux (centrage seul)</b><p>Évalue ${manque === 3 ? "les coins, les bords et la surface" : `le${manque > 1 ? "s" : ""} ${manque} critère${manque > 1 ? "s" : ""} restant${manque > 1 ? "s" : ""}`} pour obtenir une note estimée.</p></div>`;
+      return;
+    }
+    const etat = etatPourPsa(n);
     S.note = { n, haut, etat, nc };
-    $("#note-finale").innerHTML = `<div class="badge">${n}${haut > n ? "–" + haut : ""}</div><div><b>Estimation PSA ${n}${haut > n ? " à " + haut : ""} · état ${etat}</b><p>${nc != null ? `Centrage ${nc}. ` : ""}${CRITERES.filter(([k]) => S.controle[k] != null).map(([k, l]) => `${l} ${S.controle[k]}`).join(", ")}${manque ? ` · ${manque} critère${manque > 1 ? "s" : ""} à évaluer` : ""}. Indicatif : seule une gradation officielle fait foi.</p></div>`;
+    $("#note-finale").innerHTML = `<div class="badge">${n}${haut > n ? "–" + haut : ""}</div><div><b>Estimation PSA ${n}${haut > n ? " à " + haut : ""} · état ${etat}</b><p>${nc != null ? `Centrage ${nc}. ` : ""}${CRITERES.map(([k, l]) => `${l} ${S.controle[k]}`).join(", ")}. Indicatif : seule une gradation officielle fait foi.</p></div>`;
   };
   majNote();
   $("#b-identifier").onclick = () => { S.etape = "carte"; vueScan(); };
@@ -1708,7 +1770,9 @@ async function choisirCarteScan(lang, id) {
     const rec = S.mesures.recto ? ratios(S.mesures.recto) : null, ver = S.mesures.verso ? ratios(S.mesures.verso) : null;
     const centrage = rec ? { recto: { lr: rec.lr?.txt, hb: rec.hb?.txt }, ...(ver ? { verso: { lr: ver.lr?.txt, hb: ver.hb?.txt } } : {}) } : null;
     const note = S.note;
-    formulaireCarte({ carte, lang, scan: { etat: note?.etat || "NM", centrage, controle: Object.keys(S.controle).length ? S.controle : null, note_estimee: note ? `PSA ${note.n}${note.haut > note.n ? "–" + note.haut : ""} estimé` : null } });
+    formulaireCarte({ carte, lang, scan: { etat: note?.etat || "NM", centrage, controle: Object.keys(S.controle).length ? S.controle : null,
+      psa_estime: note && !note.partiel ? note.n : null,
+      note_estimee: !note ? null : note.partiel ? `PSA ${note.n} au mieux (centrage seul)` : `PSA ${note.n}${note.haut > note.n ? "–" + note.haut : ""} estimé` } });
   } catch (e) { erreur(e, "Carte"); }
 }
 

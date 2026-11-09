@@ -20,6 +20,8 @@ En ligne : https://ethrniity.github.io/Pokemon/ (installable sur le téléphone 
 
 - **Carte brute** : cote Cardmarket du jour (colonne « reverse » pour une reverse) × coefficient de l’état (NM 100 %, EX 80 %, GD 65 %, LP 50 %, PL 35 %, PO 20 %, modifiables), ou la valeur saisie à la main.
 - **Carte gradée** : la valeur saisie (lien vers les ventes réelles eBay pour la même note).
+- **Note PSA estimée** (cartes brutes) : issue du scan (centrage + coins, bords, surface), modifiable, plafonnée par l’état (NM ≤ 10, EX ≤ 6, GD ≤ 4, LP ≤ 3, PL ≤ 2, PO ≤ 1). Sa valeur = médiane des ventes réelles à cette note ; sans vente à la note exacte, la note voisine (inférieure d’abord) est utilisée et signalée.
+- **Cartes sans cote Cardmarket** (japonaises anciennes notamment) : cote brute TCGplayer quasi neuve × coefficient d’état.
 - **Bénéfice d’une vente** : prix de vente × quantité − frais − prix d’achat × quantité.
 
 ## Sources et données
@@ -28,6 +30,13 @@ En ligne : https://ethrniity.github.io/Pokemon/ (installable sur le téléphone 
 - Base : Supabase, projet « Séance musculation », schéma `pokemon` (séparé de Muscu et Coût Réel). Tables `cartes`, `suivis`, `prix`, `valeurs`, `reglages` ; vue `ma_collection` qui calcule la valeur.
 - Les cotes sont relevées **par le serveur** (extension `http` de Postgres) : chaque nuit à 4 h 35 (tâche `pokemon-releve-prix`, pg_cron) pour toutes les cartes possédées ou suivies, et à l’ajout d’une carte. L’appli ne peut pas écrire de cote elle-même.
 - Au premier relevé d’une carte, trois points « estimés » (moyennes 30, 7 et 1 jours) amorcent la courbe ; ils sont en pointillés.
+
+### Prix gradés (PokemonPriceTracker)
+
+- Clé API (formule gratuite, usage personnel) rangée dans le Vault Supabase (`pokemonpricetracker_cle`), jamais dans l’appli.
+- `pokemon._maj_gradees` : identifiant TCGplayer fourni par TCGdex → `GET /api/v2/cards?tcgPlayerId=…&includeEbay=true` (2 crédits) → médianes `ebay.salesByGrade.psaN`, prix brut `prices.market`, convertis en euros (taux BCE, `pokemon.taux`). Résultats dans `pokemon.prix_gradees`.
+- Relevé de nuit (`pokemon-releve-gradees`, 4 h 50) : cartes possédées et suivies tous les 3 jours, 40 au plus, plafond 95 crédits / jour (`pokemon.ppt_conso`). À l’ajout d’une carte et depuis la fiche : `pokemon.rafraichir_gradees`.
+- Les cartes françaises sont cotées sur leur version anglaise (les ventes gradées FR sont rares) ; les japonaises sur leur version japonaise.
 
 ## Limites connues
 
