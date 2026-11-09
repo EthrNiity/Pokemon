@@ -1,6 +1,6 @@
 // Holo Cote : l'appli s'ouvre même hors connexion (la dernière version vue est gardée).
 // Les données (cotes, collection) viennent toujours du réseau.
-const CACHE = "holo-cote-v2";
+const CACHE = "holo-cote-v3";
 const COQUILLE = ["./", "./index.html", "./noms.json", "./manifest.webmanifest", "./icone-192.png", "./icone-512.png"];
 
 self.addEventListener("install", e => {
